@@ -1,16 +1,22 @@
 package west.sample.bas;
 
-import android.os.AsyncTask; 
-import android.util.Log; 
+import java.util.ArrayList;
+import java.util.Random;
 
-import java.util.*; 
+import west.sample.bas.SamplePoint.SampleType;
+import android.content.Context;
+import android.os.AsyncTask;
+import android.util.Log;
 
 public class GenerateSample extends AsyncTask<Void, Void, String> { 
 	
 	private static Random rand;
+
+	/* handle to the database to which samples will be written */
+	private SampleDatabaseHelper dbHelper;
+
 	private ArrayList<Integer> inputX; 
 	private ArrayList<Integer> inputY; 
-	private ArrayList<float[]> sample; 
 	
 	private static final int baseX = 2; 
 	private static final int baseY = 3; 
@@ -28,7 +34,10 @@ public class GenerateSample extends AsyncTask<Void, Void, String> {
 	 * @param nSample
 	 * @param nOversample
 	 */
-	public GenerateSample(String studyAreaFilename, int nSample, int nOversample) { 
+	public GenerateSample(Context c, String studyAreaFilename, int nSample, int nOversample) { 
+		// Connect to the database where the samples will be stored
+		dbHelper = new SampleDatabaseHelper(c);
+		
 		if(rand == null) rand = new Random(); 
 		
 		//TODO make this a spatial object and population from the given file
@@ -40,7 +49,6 @@ public class GenerateSample extends AsyncTask<Void, Void, String> {
 		this.nOversample = nOversample<0 ? 0 : nOversample; 
 		
 		int nPoints = (int)((float)(nSample + nOversample) * (bb.getArea() / areaStudy)); 
-		sample = new ArrayList<float[]>(nPoints); 
 		int seed = rand.nextInt(); 
 		int nDigits = (int)(Math.log(nPoints + seed) / Math.log(2D)); 
 		inputX = new ArrayList<Integer>(nDigits); 
@@ -63,6 +71,7 @@ public class GenerateSample extends AsyncTask<Void, Void, String> {
 	private float[] nextPoint() { 
 		float x = vanDerCorput(inputX, 2); 
 		float y = vanDerCorput(inputY, 3); 
+		Log.d("GEN","[x,y]: "+x+","+y);
 		return (new float[] { x, y }); 
 	} 
 
@@ -88,25 +97,26 @@ public class GenerateSample extends AsyncTask<Void, Void, String> {
 		return sum; 
 	} 
 	
+    
 	@Override
 	protected String doInBackground(Void... params) {
-		while(sample.size()< nSample+nOversample){
-			sample.add(bb.getSample(nextPoint()));
+		for(int i=0;i<nSample;i++){
+			float[] coords = bb.getSample(nextPoint());
+			if(-1==dbHelper.addValue(i,SampleType.SAMPLE,coords[0],coords[1])){
+				Log.d("DBentry","Failed to insert row in the database");
+				return null;
+			}
 		}
-		Log.d("generate", prettyPrint(sample)); 
-		Log.d("generate", (new StringBuilder("Number of samples: ")).append(nSample).toString()); 
-		Log.d("generate", (new StringBuilder("Number of oversamples: ")).append(nOversample).toString()); 
+		for(int i=0;i<nOversample;i++){
+			float[] coords = bb.getSample(nextPoint());
+			if(-1==dbHelper.addValue(i+nSample,SampleType.OVERSAMPLE,coords[0],coords[1])){
+				Log.d("DBentry","Failed to insert row in the database");
+				return null;
+			}
+		}
+		
+		Log.d("generate", dbHelper.prettyPrint()); 
 		return "stdout!";
 	} 
 	
-	String prettyPrint(ArrayList<float[]> list) { 
-		String result = ""; 
-		for(float[] xy : list) { 
-			result += "["+xy[0]+","+xy[1]+"] ";
-		} 
-		return result; 
-	}
-
-	
-
 }
