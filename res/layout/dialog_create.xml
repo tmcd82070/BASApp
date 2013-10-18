@@ -1,0 +1,86 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".CreateActivity" >
+
+    <TextView
+        android:id="@+id/textView_labelSampleSize"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="10dp"
+        android:text="@string/label_sampleSize"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <EditText
+        android:id="@+id/editText_sampleSize"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView_labelSampleSize"
+        android:layout_below="@+id/textView_labelSampleSize"
+        android:ems="10"
+        android:hint="@string/hint_sampleSize"
+        android:inputType="number" >
+
+        <requestFocus />
+    </EditText>
+
+    <TextView
+        android:id="@+id/textView_label_oversampleSize"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView_labelSampleSize"
+        android:layout_below="@+id/editText_sampleSize"
+        android:layout_marginTop="15dp"
+        android:text="@string/label_oversampleSize"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <EditText
+        android:id="@+id/editText_oversampleSize"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView_labelSampleSize"
+        android:layout_below="@+id/textView_label_oversampleSize"
+        android:ems="10"
+        android:hint="@string/hint_oversampleSize"
+        android:inputType="number" >
+
+    </EditText>
+
+    <TextView
+        android:id="@+id/textView_labelStudyArea"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/editText_oversampleSize"
+        android:layout_below="@+id/editText_oversampleSize"
+        android:layout_marginTop="30dp"
+        android:text="@string/label_studyArea"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView
+        android:id="@+id/textView_studyAreaFilename"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView_labelStudyArea"
+        android:layout_below="@+id/textView_labelStudyArea"
+        android:layout_marginBottom="10dp"
+        android:text="@string/label_studyAreaFilename"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <Button
+        android:id="@+id/button_fileBrowser"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/textView_studyAreaFilename"
+        android:layout_alignRight="@+id/editText_oversampleSize"
+        android:text="@string/label_fileBrowser" />
+    
+</RelativeLayout>
