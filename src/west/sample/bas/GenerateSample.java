@@ -23,6 +23,7 @@ public class GenerateSample extends AsyncTask<Void, Void, String> {
 	private static final int baseY = 3; 
 	
 	private BoundingBox bb; 
+	private String studyName;
 	private float areaStudy; 
 	private int nSample; 
 	private int nOversample; 
@@ -35,7 +36,9 @@ public class GenerateSample extends AsyncTask<Void, Void, String> {
 	 * @param nSample
 	 * @param nOversample
 	 */
-	public GenerateSample(Context c, String studyAreaFilename, int nSample, int nOversample) { 
+	public GenerateSample(Context c, String studyName, String studyAreaFilename, int nSample, int nOversample) { 
+		this.studyName = studyName;
+		
 		// Connect to the database where the samples will be stored
 		dbHelper = new SampleDatabaseHelper(c);
 		
@@ -127,14 +130,14 @@ public class GenerateSample extends AsyncTask<Void, Void, String> {
 	protected String doInBackground(Void... params) {
 		for(int i=0;i<nSample;i++){
 			float[] coords = bb.getSample(nextPoint());
-			if(-1==dbHelper.addValue(i,SampleType.SAMPLE,coords[0],coords[1])){
+			if(-1==dbHelper.addValue(studyName,i,SampleType.SAMPLE,coords[0],coords[1])){
 				Log.d("DBentry","Failed to insert row in the database");
 				return null;
 			}
 		}
 		for(int i=0;i<nOversample;i++){
 			float[] coords = bb.getSample(nextPoint());
-			if(-1==dbHelper.addValue(i+nSample,SampleType.OVERSAMPLE,coords[0],coords[1])){
+			if(-1==dbHelper.addValue(studyName,i+nSample,SampleType.OVERSAMPLE,coords[0],coords[1])){
 				Log.d("DBentry","Failed to insert row in the database");
 				return null;
 			}

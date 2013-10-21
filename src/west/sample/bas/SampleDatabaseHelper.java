@@ -1,8 +1,8 @@
 package west.sample.bas;
 
 import java.sql.Date;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -10,7 +10,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
-import android.text.format.DateFormat;
 
 /**
  * Based on developer.android.com/training/basics/data-storage/databases.html
@@ -20,14 +19,16 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 
 	// V1: initial implementation
 	// V2: updated to include timestamp when creating an entry
-	public static final int DATABASE_VERSION = 2;
+	// V3: created a field to indicate which study each point is associated with
+	public static final int DATABASE_VERSION = 3;
 	public static final String DATABASE_NAME = "BAS.db";
 	
-	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 	
 	/** Description of the database columns **/
 	public static abstract class SampleInfo implements BaseColumns{
 		public static final String TABLE_NAME = "bas_sample";
+		public static final String COLUMN_NAME_STUDY = "study";
 		public static final String COLUMN_NAME_NUMBER = "number";
 		public static final String COLUMN_NAME_TYPE = "type";
 		public static final String COLUMN_NAME_X = "x";
@@ -50,6 +51,7 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 	private static final String CREATE_TABLE = 
 			"CREATE TABLE "+SampleInfo.TABLE_NAME + " ("+
 			SampleInfo._ID 					+ DATA_INT 			+ " PRIMARY KEY AUTOINCREMENT,"+
+			SampleInfo.COLUMN_NAME_STUDY 	+ DATA_TEXT 		+ REQUIRED + "," + 
 			SampleInfo.COLUMN_NAME_NUMBER 	+ DATA_INT 			+ REQUIRED + "," + 
 			SampleInfo.COLUMN_NAME_TYPE 	+ DATA_ENUM_TYPE 	+ REQUIRED + "," + 
 			SampleInfo.COLUMN_NAME_X 		+ DATA_FLOAT 		+ REQUIRED + "," + 
@@ -73,12 +75,13 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 		db.execSQL(CREATE_TABLE);
 	}
 
+	//TODO actually deal with changes in the database - don't just delete the old one
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		// write the previous data to file
 		//writeToFile(db);
 		// remove all data from the database
-		//db.execSQL(DELETE_TABLE);
+		db.execSQL(DELETE_TABLE);
 	}
 
  	public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -94,9 +97,10 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 	 * @param y y coordinate of the point
 	 * @return primary key value (_ID) of the new row
 	 */
-	public long addValue(int number, SamplePoint.SampleType type, double x, double y){
+	public long addValue(String study, int number, SamplePoint.SampleType type, double x, double y){
 		ContentValues data = new ContentValues();
-		data.put(west.sample.bas.SampleDatabaseHelper.SampleInfo.COLUMN_NAME_NUMBER, number);
+		data.put(SampleInfo.COLUMN_NAME_STUDY, study);
+		data.put(SampleInfo.COLUMN_NAME_NUMBER, number);
 		data.put(SampleInfo.COLUMN_NAME_TYPE, type.getString());
 		data.put(SampleInfo.COLUMN_NAME_X, x);
 		data.put(SampleInfo.COLUMN_NAME_Y, y);
@@ -112,15 +116,16 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 		String result = ""; 
 		Cursor cursor = db.rawQuery("SELECT * FROM "+SampleInfo.TABLE_NAME, null);
 		while(cursor.moveToNext()){
-			String commentString = cursor.getString(6);
+			String commentString = cursor.getString(7);
 			if(commentString==null) commentString = "[No comments]";
-			result += cursor.getInt(1)+","+ 	// number
-					  cursor.getString(2)+","+ 	// type	
-					  cursor.getFloat(3)+","+	// x
-					  cursor.getFloat(4)+","+	// y
-					  cursor.getString(5)+","+	// status
-					  commentString+","+	// comment
-					  cursor.getString(7)+"\n"; // timestamp
+			result += cursor.getString(1)+","+	// study
+					  cursor.getInt(2)+","+ 	// number
+					  cursor.getString(3)+","+ 	// type	
+					  cursor.getFloat(4)+","+	// x
+					  cursor.getFloat(5)+","+	// y
+					  cursor.getString(6)+","+	// status
+					  commentString+","+		// comment
+					  cursor.getString(8)+"\n"; // timestamp
 		}
 		return result; 
 	}

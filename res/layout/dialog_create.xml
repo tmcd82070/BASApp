@@ -9,13 +9,35 @@
     tools:context=".CreateActivity" >
 
     <TextView
-        android:id="@+id/textView_labelSampleSize"
+        android:id="@+id/textView_labelSampleName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:layout_marginLeft="15dp"
         android:layout_marginTop="10dp"
+        android:text="@string/label_sampleName"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <EditText
+        android:id="@+id/editText_sampleName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView_labelSampleName"
+        android:layout_below="@+id/textView_labelSampleName"
+        android:ems="10"
+        android:hint="@string/hint_sampleName">
+
+        <requestFocus />
+    </EditText>
+    
+    <TextView
+        android:id="@+id/textView_labelSampleSize"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView_labelSampleName"
+        android:layout_below="@+id/editText_sampleName"
+        android:layout_marginTop="15dp"
         android:text="@string/label_sampleSize"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -23,20 +45,18 @@
         android:id="@+id/editText_sampleSize"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView_labelSampleSize"
+        android:layout_alignLeft="@+id/textView_labelSampleName"
         android:layout_below="@+id/textView_labelSampleSize"
         android:ems="10"
         android:hint="@string/hint_sampleSize"
         android:inputType="number" >
-
-        <requestFocus />
-    </EditText>
+	</EditText>
 
     <TextView
         android:id="@+id/textView_label_oversampleSize"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView_labelSampleSize"
+        android:layout_alignLeft="@+id/textView_labelSampleName"
         android:layout_below="@+id/editText_sampleSize"
         android:layout_marginTop="15dp"
         android:text="@string/label_oversampleSize"
@@ -46,7 +66,7 @@
         android:id="@+id/editText_oversampleSize"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView_labelSampleSize"
+        android:layout_alignLeft="@+id/textView_labelSampleName"
         android:layout_below="@+id/textView_label_oversampleSize"
         android:ems="10"
         android:hint="@string/hint_oversampleSize"
@@ -58,7 +78,7 @@
         android:id="@+id/textView_labelStudyArea"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/editText_oversampleSize"
+        android:layout_alignLeft="@+id/textView_labelSampleName"
         android:layout_below="@+id/editText_oversampleSize"
         android:layout_marginTop="30dp"
         android:text="@string/label_studyArea"
@@ -68,7 +88,7 @@
         android:id="@+id/textView_studyAreaFilename"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView_labelStudyArea"
+        android:layout_alignLeft="@+id/textView_labelSampleName"
         android:layout_below="@+id/textView_labelStudyArea"
         android:layout_marginBottom="10dp"
         android:text="@string/label_studyAreaFilename"

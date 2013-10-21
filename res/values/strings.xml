@@ -13,6 +13,7 @@
 	<string name="label_map">Map</string>
 	<string name="label_table">Table</string>
 	
+	<string name="label_sampleName">Sample Name</string>
     <string name="label_sampleSize">Sample Size</string>
 	<string name="label_studyArea">Study Area</string>
 	<string name="label_oversampleSize">Oversample Size</string>
@@ -24,6 +25,7 @@
     <string name="label_fileBrowser">Browse</string>
     
     <!-- Text field hints -->
+    <string name="hint_sampleName">Study name (A-Z,a-z,_)</string>
 	<string name="hint_sampleSize">Number of samples (n)</string>
     <string name="hint_oversampleSize">Samples in reserve</string>
 	<string name="hint_map">Use the menu to generate a BAS or load a file.</string>

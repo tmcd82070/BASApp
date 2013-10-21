@@ -124,9 +124,11 @@ public class MainActivity extends FragmentActivity {
 	private void createBAS() { 
 		LayoutInflater inflater = (LayoutInflater)getSystemService("layout_inflater"); 
 		View layout = inflater.inflate(R.layout.dialog_create, (ViewGroup)findViewById(R.layout.activity_main)); 
+		final EditText studyNameTxt = (EditText)layout.findViewById(R.id.editText_sampleName);
 		final EditText numberSamplesTxt = (EditText)layout.findViewById(R.id.editText_sampleSize); 
 		final EditText numberOversamplesTxt = (EditText)layout.findViewById(R.id.editText_oversampleSize);
 		
+		final TextView studyNameLabel = (TextView)layout.findViewById(R.id.textView_labelSampleName);
 		final TextView filenameLabel = (TextView)layout.findViewById(R.id.textView_labelStudyArea);
 		final TextView numberSamplesLabel = (TextView)layout.findViewById(R.id.textView_labelSampleSize);
 		final TextView numberOversamplesLabel = (TextView)layout.findViewById(R.id.textView_label_oversampleSize);
@@ -168,18 +170,25 @@ public class MainActivity extends FragmentActivity {
 			@Override
 			public void onClick(View v) {
 				// check the values
+				String studyName = getCleanString(studyNameTxt);
 				int nSamples = getInt(numberSamplesTxt);
 				int nOversamples = getInt(numberOversamplesTxt);
 				
 				// highlight missing values 
 				filenameLabel.setTextColor(getResources().getColor(android.R.color.black));
-				if(nSamples<1){
+				if(studyName.isEmpty()){
+					displayToast("Invalid characters in the study name");
+					studyNameTxt.setText("");
+					studyNameLabel.setTextColor(getResources().getColor(R.color.highlight));
+				}if(nSamples<1){
+					studyNameLabel.setTextColor(getResources().getColor(android.R.color.black));
 					numberSamplesLabel.setTextColor(getResources().getColor(R.color.highlight));
 				}else if(nOversamples<0){
 					numberSamplesLabel.setTextColor(getResources().getColor(android.R.color.black));
 					numberOversamplesLabel.setTextColor(getResources().getColor(R.color.highlight));
 				}else if(studyAreaFilename != null){
-					GenerateSample g = new GenerateSample(getBaseContext(),studyAreaFilename,nSamples,nOversamples);
+					GenerateSample g = new GenerateSample(getBaseContext(),studyName, 
+							studyAreaFilename,nSamples,nOversamples);
 					g.execute();
 					dialog.dismiss();
 				}else{
@@ -195,6 +204,12 @@ public class MainActivity extends FragmentActivity {
 		// (EditText set as numeric in the xml; could use try/catch for more robust)
 		if(s.length()>0) return Integer.valueOf(s);
 		return -1;
+	}
+	
+	protected String getCleanString(EditText textField){
+		String raw = textField.getText().toString();
+		// TODO strip non alpha characters 
+		return "clean"+raw;
 	}
 
 	private boolean loadBAS() { 
