@@ -20,7 +20,7 @@ public class SamplePoint {
 		SAMPLE,OVERSAMPLE;
 
 		public String getString() {
-			return "'"+this.toString().toLowerCase(Locale.US)+"'";
+			return this.toString().toLowerCase(Locale.US);
 		}
 	}
 	

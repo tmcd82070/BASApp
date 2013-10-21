@@ -11,7 +11,8 @@ import android.util.Log;
 public class GenerateSample extends AsyncTask<Void, Void, String> { 
 	
 	private static Random rand;
-
+	private static final int SUFFICIENTLY_LARGE_U = 32;
+	
 	/* handle to the database to which samples will be written */
 	private SampleDatabaseHelper dbHelper;
 
@@ -49,23 +50,32 @@ public class GenerateSample extends AsyncTask<Void, Void, String> {
 		this.nOversample = nOversample<0 ? 0 : nOversample; 
 		
 		int nPoints = (int)((float)(nSample + nOversample) * (bb.getArea() / areaStudy)); 
-		int seed = rand.nextInt(); 
+		int seed = rand.nextInt(SUFFICIENTLY_LARGE_U); 
 		int nDigits = (int)(Math.log(nPoints + seed) / Math.log(2D)); 
 		inputX = new ArrayList<Integer>(nDigits); 
 		convertToBase(seed, baseX, inputX); 
-		seed = rand.nextInt(); 
+		seed = rand.nextInt(SUFFICIENTLY_LARGE_U); 
 		nDigits = (int)(Math.log(nPoints + seed) / Math.log(3D)); 
 		inputY = new ArrayList<Integer>(nDigits); 
 		convertToBase(seed, baseY, inputY); 
 	} 
 	
+	/**
+	 * The least significant n-digit (e.g., bit) is listed in position 0
+	 * @param n_10 number in base 10
+	 * @param baseX desired base of the output
+	 * @param n_base list of base 10 integers representing baseX digits
+	 */
 	private void convertToBase(int n_10, int baseX, ArrayList<Integer> n_base) { 
+		Log.d("GEN","Input: "+n_10);
+		if(n_10<0) n_10*=-1;
 		while(n_10>0){
 			int q = n_10/baseX;
 			int r = n_10-q*baseX;
 			n_base.add(r);
 			n_10=q;
-		}		
+		}
+		Log.d("GEN","Base "+baseX+": "+n_base);
 	}
 	
 	private float[] nextPoint() { 
@@ -75,11 +85,26 @@ public class GenerateSample extends AsyncTask<Void, Void, String> {
 		return (new float[] { x, y }); 
 	} 
 
+	/**
+	 * Steps from the least significant bit (in position 0) to the most 
+	 * significant bit computing the sum = the next element in the 
+	 * van der Corput sequence
+	 * 
+	 * A stateful method that increments the number (n_base) preparing
+	 * for the next call to vanDerCorput()
+	 * 
+	 * The base is assumed to be non-zero
+	 * 
+	 * @param n_base the number for which the sum shoud be computed
+	 * @param base the base in which n_base is represented also used as 
+	 * the demonimator in the division) 
+	 * @return decimal value [0,1]
+	 */
 	private float vanDerCorput(ArrayList<Integer> n_base, int base) { 
 		float sum = 0.0F; 
 		int denom = base; 
 		int toAdd = 1; 
-		for(int i = n_base.size() - 1; i >= 0; i--) { 
+		for(int i = 0; i <n_base.size(); i++) { 
 			int digit = ((Integer)n_base.get(i)).intValue(); 
 			sum += (float)digit / (float)denom; 
 			denom *= base; 
@@ -115,7 +140,7 @@ public class GenerateSample extends AsyncTask<Void, Void, String> {
 			}
 		}
 		
-		Log.d("generate", dbHelper.prettyPrint()); 
+		//Log.d("generate", dbHelper.prettyPrint()); 
 		return "stdout!";
 	} 
 	
