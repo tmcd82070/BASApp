@@ -1,21 +1,18 @@
 package west.sample.bas;
 
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask; 
-import android.util.Log; 
+import java.util.ArrayList;
+import java.util.Random;
 
-import java.util.*; 
-
-import west.sample.bas.SampleDatabaseHelper.SampleInfo;
 import west.sample.bas.SamplePoint.SampleType;
+import android.content.Context;
+import android.os.AsyncTask;
+import android.util.Log;
 
 public class GenerateSample extends AsyncTask<Void, Void, String> { 
 	
 	private static Random rand;
-
+	private static final int SUFFICIENTLY_LARGE_U = 50;
+	
 	/* handle to the database to which samples will be written */
 	private SampleDatabaseHelper dbHelper;
 
@@ -61,20 +58,30 @@ public class GenerateSample extends AsyncTask<Void, Void, String> {
 		nDigits = (int)(Math.log(nPoints + seed) / Math.log(3D)); 
 		inputY = new ArrayList<Integer>(nDigits); 
 		convertToBase(seed, baseY, inputY); 
+		
+		Log.d("GEN","Initial inputX: "+inputX);
+		Log.d("GEN","Initial inputY: "+inputY);
 	} 
 	
 	private void convertToBase(int n_10, int baseX, ArrayList<Integer> n_base) { 
-		while(n_10>0){
-			int q = n_10/baseX;
-			int r = n_10-q*baseX;
-			n_base.add(r);
-			n_10=q;
-		}		
+		if(n_10==0) n_base.add(0);
+		else{
+			while(n_10>0){
+				int q = n_10/baseX;
+				int r = n_10-q*baseX;
+				n_base.add(r);
+				n_10=q;
+			}
+		}
+		Log.d("GEN","Convert to base: "+n_base);
 	}
 	
 	private float[] nextPoint() { 
+		Log.d("GEN","[inputX]: "+inputX);
+		Log.d("GEN","[inputY]: "+inputY);
 		float x = vanDerCorput(inputX, 2); 
 		float y = vanDerCorput(inputY, 3); 
+		Log.d("GEN","[x,y]: "+x+","+y);
 		return (new float[] { x, y }); 
 	} 
 
@@ -112,7 +119,7 @@ public class GenerateSample extends AsyncTask<Void, Void, String> {
 		}
 		for(int i=0;i<nOversample;i++){
 			float[] coords = bb.getSample(nextPoint());
-			if(-1==dbHelper.addValue(i,SampleType.OVERSAMPLE,coords[0],coords[1])){
+			if(-1==dbHelper.addValue(i+nSample,SampleType.OVERSAMPLE,coords[0],coords[1])){
 				Log.d("DBentry","Failed to insert row in the database");
 				return null;
 			}

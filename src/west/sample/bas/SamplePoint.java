@@ -20,7 +20,7 @@ public class SamplePoint {
 		SAMPLE,OVERSAMPLE;
 
 		public String getString() {
-			return "'"+this.toString().toLowerCase(Locale.US)+"'";
+			return this.toString().toLowerCase(Locale.US);
 		}
 	}
 	
@@ -49,7 +49,7 @@ public class SamplePoint {
 	private double y;
 	
 	/* the position of the point within the continuous sequence in the generated sample */
-	private int order;
+	private int number;
 	
 	/* Original type of the point (sample or oversample) */
 	private SampleType type;
