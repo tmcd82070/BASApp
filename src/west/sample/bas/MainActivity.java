@@ -1,5 +1,7 @@
 package west.sample.bas;
 
+import java.util.ArrayList;
+
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.app.AlertDialog;
@@ -10,10 +12,21 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
-import android.view.*;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
-import android.widget.*; 
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 
 
 public class MainActivity extends FragmentActivity {
@@ -154,7 +167,8 @@ public class MainActivity extends FragmentActivity {
 				filenameLabel.setTextColor(getResources().getColor(android.R.color.black));
 				filenameTxt.setText("Selected!");
 			}});
-		android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this); 
+		
+		AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this); 
 		builder.setView(layout); 
 		builder.setPositiveButton("Create", null);
 		builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {	
@@ -213,15 +227,53 @@ public class MainActivity extends FragmentActivity {
 	}
 
 	private boolean loadBAS() { 
-		String filename = "Need to choose a filename!"; 
-		return loadBAS(filename); 
+		LayoutInflater inflater = (LayoutInflater)getSystemService("layout_inflater"); 
+		View layout = inflater.inflate(R.layout.dialog_load, (ViewGroup)findViewById(R.layout.activity_main)); 
+		
+		// populate the spinner with the names of tables available in the database
+		final Spinner spinner = (Spinner)layout.findViewById(R.id.spinner_sampleNames);
+		SampleDatabaseHelper db = new SampleDatabaseHelper(getBaseContext());
+		ArrayList<String> studies = db.getListOfStudies();
+		if(studies==null) studies = new ArrayList<String>(1);
+		boolean isEnabled = true;
+		if(studies.isEmpty()){
+			studies.add(getString(R.string.hint_noSampleName));
+			spinner.setEnabled(false);
+			isEnabled = false;
+		}
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(getBaseContext(),
+				android.R.layout.simple_spinner_item,studies);
+        spinner.setAdapter(adapter);
+
+		AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this); 
+		builder.setView(layout); 
+		builder.setPositiveButton("Load", new DialogInterface.OnClickListener(){
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				Object selected = spinner.getSelectedItem();
+				if(selected instanceof String){
+					new LoadSample(getBaseContext(),(String) spinner.getSelectedItem()).execute();
+					displayToast("Selected "+spinner.getSelectedItem());
+				}else{
+					Log.e("INPUT", "Spinner input: Expected a string but received "+selected.getClass());
+				}
+				
+			}});
+		builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {	
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+			}});
+		
+		final AlertDialog dialog = builder.create();
+		dialog.show(); 
+		// Turn off the create button if there are no exiting studies
+		if(!isEnabled){
+			dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+		}
+		return true;
 	} 
-	
-	private boolean loadBAS(String filename) { 
-		displayToast((new StringBuilder("Received request to load \"")).append(filename).append("\"").toString()); 
-		return true; 
-	} 
-	
+		
 	protected void startActivity(String className) {
 		Intent i = new Intent();
 		i.setClassName(this, className);
@@ -230,7 +282,7 @@ public class MainActivity extends FragmentActivity {
 	}
 	
 	protected void displayToast(String message) { 
-		Toast.makeText(this, message, 1).show(); 
+		Toast.makeText(this, message, Toast.LENGTH_LONG).show(); 
 	} 
 
 }

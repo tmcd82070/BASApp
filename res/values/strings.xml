@@ -7,7 +7,7 @@
     <string name="title_app">Balanced Acceptance Sampling</string>
     
     <string name="action_create">Create BAS</string>
-    <string name="action_load">Load from File</string>
+    <string name="action_load">Load Existing BAS</string>
     
     <!-- UI labels -->
 	<string name="label_map">Map</string>
@@ -26,6 +26,7 @@
     
     <!-- Text field hints -->
     <string name="hint_sampleName">Study name (A-Z,a-z,_)</string>
+    <string name="hint_noSampleName">No existing BAS</string>
 	<string name="hint_sampleSize">Number of samples (n)</string>
     <string name="hint_oversampleSize">Samples in reserve</string>
 	<string name="hint_map">Use the menu to generate a BAS or load a file.</string>

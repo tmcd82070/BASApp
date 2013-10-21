@@ -8,7 +8,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class GenerateSample extends AsyncTask<Void, Void, String> { 
+public class GenerateSample extends AsyncTask<Void, Void, Boolean> { 
 	
 	private static Random rand;
 	private static final int SUFFICIENTLY_LARGE_U = 32;
@@ -127,24 +127,24 @@ public class GenerateSample extends AsyncTask<Void, Void, String> {
 	
     
 	@Override
-	protected String doInBackground(Void... params) {
+	protected Boolean doInBackground(Void... params) {
 		for(int i=0;i<nSample;i++){
 			float[] coords = bb.getSample(nextPoint());
 			if(-1==dbHelper.addValue(studyName,i,SampleType.SAMPLE,coords[0],coords[1])){
 				Log.d("DBentry","Failed to insert row in the database");
-				return null;
+				return false;
 			}
 		}
 		for(int i=0;i<nOversample;i++){
 			float[] coords = bb.getSample(nextPoint());
 			if(-1==dbHelper.addValue(studyName,i+nSample,SampleType.OVERSAMPLE,coords[0],coords[1])){
 				Log.d("DBentry","Failed to insert row in the database");
-				return null;
+				return false;
 			}
 		}
 		
-		Log.d("generate", dbHelper.prettyPrint()); 
-		return "stdout!";
+		//Log.d("generate", dbHelper.prettyPrint()); 
+		return true;
 	} 
 	
 }

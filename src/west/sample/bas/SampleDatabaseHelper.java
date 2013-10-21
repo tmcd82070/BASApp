@@ -2,6 +2,8 @@ package west.sample.bas;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import android.content.ContentValues;
@@ -111,7 +113,22 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 		return db.insert(SampleInfo.TABLE_NAME, null, data);
 	}
 	
-
+	public ArrayList<String> getListOfStudies(){
+		Cursor cursor= db.rawQuery("SELECT DISTINCT "+SampleInfo.COLUMN_NAME_STUDY+
+				" FROM "+SampleInfo.TABLE_NAME, null);
+		int columnIndex = cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STUDY);
+		int numStudies = cursor.getCount();
+		if(numStudies>0){
+			ArrayList<String> result = new ArrayList<String>(cursor.getCount());
+			while(cursor.moveToNext()){
+				result.add(cursor.getString(columnIndex));
+			}
+			return result;
+		}else{
+			return null;
+		}
+	}
+	
 	public String prettyPrint() {
 		String result = ""; 
 		Cursor cursor = db.rawQuery("SELECT * FROM "+SampleInfo.TABLE_NAME, null);
