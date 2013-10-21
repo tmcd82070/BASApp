@@ -179,7 +179,7 @@ public class MainActivity extends FragmentActivity {
 					numberSamplesLabel.setTextColor(getResources().getColor(android.R.color.black));
 					numberOversamplesLabel.setTextColor(getResources().getColor(R.color.highlight));
 				}else if(studyAreaFilename != null){
-					GenerateSample g = new GenerateSample(studyAreaFilename,nSamples,nOversamples);
+					GenerateSample g = new GenerateSample(getBaseContext(),studyAreaFilename,nSamples,nOversamples);
 					g.execute();
 					dialog.dismiss();
 				}else{
