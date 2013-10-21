@@ -140,7 +140,7 @@ public class GenerateSample extends AsyncTask<Void, Void, String> {
 			}
 		}
 		
-		//Log.d("generate", dbHelper.prettyPrint()); 
+		Log.d("generate", dbHelper.prettyPrint()); 
 		return "stdout!";
 	} 
 	

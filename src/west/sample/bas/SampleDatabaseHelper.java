@@ -1,11 +1,16 @@
 package west.sample.bas;
 
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+import android.text.format.DateFormat;
 
 /**
  * Based on developer.android.com/training/basics/data-storage/databases.html
@@ -13,8 +18,12 @@ import android.provider.BaseColumns;
  */
 public class SampleDatabaseHelper extends SQLiteOpenHelper {
 
-	public static final int DATABASE_VERSION = 1;
+	// V1: initial implementation
+	// V2: updated to include timestamp when creating an entry
+	public static final int DATABASE_VERSION = 2;
 	public static final String DATABASE_NAME = "BAS.db";
+	
+	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	/** Description of the database columns **/
 	public static abstract class SampleInfo implements BaseColumns{
@@ -91,20 +100,27 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 		data.put(SampleInfo.COLUMN_NAME_TYPE, type.getString());
 		data.put(SampleInfo.COLUMN_NAME_X, x);
 		data.put(SampleInfo.COLUMN_NAME_Y, y);
+		data.put(SampleInfo.COLUMN_NAME_TIMESTAMP, format.format(new Date(System.currentTimeMillis())));
 		// Initially the status is equal to the type
 		data.put(SampleInfo.COLUMN_NAME_STATUS, type.getString());
-		
+
 		return db.insert(SampleInfo.TABLE_NAME, null, data);
 	}
+	
 
 	public String prettyPrint() {
 		String result = ""; 
 		Cursor cursor = db.rawQuery("SELECT * FROM "+SampleInfo.TABLE_NAME, null);
 		while(cursor.moveToNext()){
-			result += cursor.getInt(1)+","+ 	// order
+			String commentString = cursor.getString(6);
+			if(commentString==null) commentString = "[No comments]";
+			result += cursor.getInt(1)+","+ 	// number
 					  cursor.getString(2)+","+ 	// type	
 					  cursor.getFloat(3)+","+	// x
-					  cursor.getFloat(4)+"\n";	// y	
+					  cursor.getFloat(4)+","+	// y
+					  cursor.getString(5)+","+	// status
+					  commentString+","+	// comment
+					  cursor.getString(7)+"\n"; // timestamp
 		}
 		return result; 
 	}
