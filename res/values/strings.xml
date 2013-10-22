@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="action_settings">Settings</string>
+    
+    <!-- Activity titles -->
+    <string name="title_app">Balanced Acceptance Sampling</string>
+    
+    <string name="action_create">Create BAS</string>
+    <string name="action_load">Load from File</string>
+    
+    <!-- UI labels -->
+	<string name="label_map">Map</string>
+	<string name="label_table">Table</string>
+	
+    <string name="label_sampleSize">Sample Size</string>
+	<string name="label_studyArea">Study Area</string>
+	<string name="label_oversampleSize">Oversample Size</string>
+	<string name="label_create">Generate BAS</string>
+	<string name="label_studyAreaFilename">No study area identified</string>
+	
+    <!-- Button labels -->
+    <string name="label_new">Create new sample</string>
+    <string name="label_fileBrowser">Browse</string>
+    
+    <!-- Text field hints -->
+	<string name="hint_sampleSize">Number of samples (n)</string>
+    <string name="hint_oversampleSize">Samples in reserve</string>
+	<string name="hint_map">Use the menu to generate a BAS or load a file.</string>
+    
+    <!-- Accessibility description -->
+    <string name="describe_studyArea">Graphical display of study area boundary</string>
+    
+    <color name="highlight">#AA2222</color>
+</resources>
