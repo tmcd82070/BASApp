@@ -9,6 +9,11 @@
     <string name="action_create">Create BAS</string>
     <string name="action_load">Load Existing BAS</string>
     
+    <!-- UI display -->
+    <string name="display_id">[Sample ID]</string>
+    <string name="display_status">[Status]</string>
+    <string name="display_comments">[Comments]</string>
+    
     <!-- UI labels -->
 	<string name="label_map">Map</string>
 	<string name="label_table">Table</string>
@@ -34,5 +39,7 @@
     <!-- Accessibility description -->
     <string name="describe_studyArea">Graphical display of study area boundary</string>
     
+    <!-- Colors to use in the display -->
     <color name="highlight">#AA2222</color>
+    <color name="near_me">#FFFF33</color>
 </resources>

@@ -1,7 +1,8 @@
 package west.sample.bas;
 
-import java.sql.Timestamp;
 import java.util.Locale;
+
+import west.sample.bas.SamplePoint.Status;
 
 /** The SamplePoint class encapsulates all of the information associated with 
  * a single sample point.
@@ -11,6 +12,9 @@ import java.util.Locale;
  */
 public class SamplePoint {
 
+	// Avoid instantiation of this class
+	private SamplePoint(){}
+	
 	/** 
 	 * Each generated point is labeled as either a necessary collection point 
 	 * (SAMPLE) or is provided as an alternative to a necessary point that gets 
@@ -41,27 +45,21 @@ public class SamplePoint {
 	 * 				inaccessible due to land ownership or hazardous conditions
 	 * COMPLETE: 	a point that has been visited and data was collected
 	 */
-	public static enum Status {SAMPLE, OVERSAMPLE, REJECT, COLLECTED}
+	public static enum Status {SAMPLE, OVERSAMPLE, REJECT, COLLECTED;
+
+		public boolean matches(String status) {
+			return status.equalsIgnoreCase(this.toString());
+		}
+
+		public static Status getValueFromString(String status) {
+			if(status.equals("sample")) return SAMPLE;
+			if(status.equals("oversample")) return OVERSAMPLE;
+			if(status.equals("reject")) return REJECT;
+			if(status.equals("collected")) return COLLECTED;
+			return null;
+		}
+	}
 	
-	/** Required attributes **/
-	/* x,y coordinates of the point */
-	private double x;
-	private double y;
-	
-	/* the position of the point within the continuous sequence in the generated sample */
-	private int number;
-	
-	/* Original type of the point (sample or oversample) */
-	private SampleType type;
-	
-	/* Dynamic status of the point during collection in the field */
-	private Status status;
-	
-	/** Optional Attributes **/
-	/* The time that the point was visited (complete or reject) */
-	private Timestamp timestamp;
-	
-	/* Narrative comments provided by the user */
-	private String comments;
+
 	
 }

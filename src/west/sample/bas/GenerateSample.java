@@ -1,5 +1,6 @@
 package west.sample.bas;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -8,60 +9,90 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class GenerateSample extends AsyncTask<Void, Void, Boolean> { 
+public class GenerateSample extends AsyncTask<Void, Void, Integer> { 
 	
-	private static Random rand;
-	private static final int SUFFICIENTLY_LARGE_U = 32;
+	/** Constant to indicate the type of error is related to file I/O */
+	public static final int GENERATE_SAMPLE_FILEIO_ERROR = -1;
 	
-	/* handle to the database to which samples will be written */
-	private SampleDatabaseHelper dbHelper;
+	/** Constant to indicate the type of error is database related */
+	public static final int GENERATE_SAMPLE_DATABASE_ERROR = -2;
+	
+	/** A random number generator to seed the random-start Halton sequences */
+	private static Random sRand;
+	/** Upper bound on the random seed */
+	private static final int SUFFICIENTLY_LARGE_U = 10000000;
+	
+	/** A handle to the database to which samples will be written */
+	private SampleDatabaseHelper mDbHelper;
 
-	private ArrayList<Integer> inputX; 
-	private ArrayList<Integer> inputY; 
+	/** A baseX representation of the seed for the Halton sequence 
+	 * that determines the X coordinate
+	 * @see #sBaseX
+	 */
+	private ArrayList<Integer> mInputX; 
 	
-	private static final int baseX = 2; 
-	private static final int baseY = 3; 
+	/** Base used in generating the Halton sequence for the X coordinate */
+	private static final int sBaseX = 2; 
 	
-	private BoundingBox bb; 
-	private String studyName;
-	private float areaStudy; 
-	private int nSample; 
-	private int nOversample; 
+	/** A baseY representation of the seed for the Halton sequence 
+	 * that determines the Y coordinate
+	 * @see #sBaseY
+	 */
+	private ArrayList<Integer> mInputY; 
+	
+	/** Base used in generating the Halton sequence for the Y coordinate */
+	private static final int sBaseY = 3; 
+	
+	private StudyArea mStudyArea;
+	private int mNumberSamples; 
+	private int mNumberOversamples;
+	private String mStudyAreaFilename;
+	private String mStudyName; 
 
 	
 	/**
 	 * negative values for the numbers of (over)samples indicate that the value was not set
-	 * @param bb
-	 * @param areaStudy
+	 * @param c
+	 * @param studyName
+	 * @param studyAreaFilename
 	 * @param nSample
 	 * @param nOversample
 	 */
-	public GenerateSample(Context c, String studyName, String studyAreaFilename, int nSample, int nOversample) { 
-		this.studyName = studyName;
+	public GenerateSample(Context c, String studyName, String studyAreaFilename, int nSample, int nOversample) {
+		mStudyAreaFilename = studyAreaFilename;
+		mStudyName = studyName;
 		
 		// Connect to the database where the samples will be stored
-		dbHelper = new SampleDatabaseHelper(c);
+		mDbHelper = new SampleDatabaseHelper(c);
 		
-		if(rand == null) rand = new Random(); 
+		if(sRand == null) sRand = new Random(); 
 		
-		//TODO make this a spatial object and population from the given file
-		areaStudy = 20;
-		//TODO get the bounding box from the study area
-		bb = new BoundingBox(0,0,5,5);
-		
-		this.nSample = nSample<0 ? 0 : nSample; 
-		this.nOversample = nOversample<0 ? 0 : nOversample; 
-		
-		int nPoints = (int)((float)(nSample + nOversample) * (bb.getArea() / areaStudy)); 
-		int seed = rand.nextInt(SUFFICIENTLY_LARGE_U); 
-		int nDigits = (int)(Math.log(nPoints + seed) / Math.log(2D)); 
-		inputX = new ArrayList<Integer>(nDigits); 
-		convertToBase(seed, baseX, inputX); 
-		seed = rand.nextInt(SUFFICIENTLY_LARGE_U); 
-		nDigits = (int)(Math.log(nPoints + seed) / Math.log(3D)); 
-		inputY = new ArrayList<Integer>(nDigits); 
-		convertToBase(seed, baseY, inputY); 
+		this.mNumberSamples = nSample<0 ? 0 : nSample; 
+		this.mNumberOversamples = nOversample<0 ? 0 : nOversample; 
 	} 
+	
+	/** Initialize a buffer to hold the digits of the seed (in the 
+	 * given base) to be used when generating the Halton sequence.
+	 * (If the number of points is too large, excessive space may 
+	 * be allocated.  If the number is too small, insufficient space
+	 * may be allocated leading to an additional cost to expand the
+	 * ArrayList.)
+	 * 
+	 * @see #convertToBase
+	 * 
+	 * @param nPoints number of points that will need to be generated 
+	 * @param base number system for which the Halton sequence will be generated
+	 * @return list of digits (in given base) for the seed of the Halton sequence
+	 */
+	private ArrayList<Integer> initSeedBuffer(int nPoints, int base){
+		int seed = sRand.nextInt(SUFFICIENTLY_LARGE_U);
+		int estMaxSeedValue = seed+nPoints;
+		int nDigits = (int)(Math.log(estMaxSeedValue) / Math.log(base)); 
+		ArrayList<Integer> buffer = new ArrayList<Integer>(nDigits);
+		convertToBase(seed, base, buffer);
+		return buffer;
+	}
+	
 	
 	/**
 	 * The least significant n-digit (e.g., bit) is listed in position 0
@@ -70,7 +101,6 @@ public class GenerateSample extends AsyncTask<Void, Void, Boolean> {
 	 * @param n_base list of base 10 integers representing baseX digits
 	 */
 	private void convertToBase(int n_10, int baseX, ArrayList<Integer> n_base) { 
-		Log.d("GEN","Input: "+n_10);
 		if(n_10<0) n_10*=-1;
 		while(n_10>0){
 			int q = n_10/baseX;
@@ -78,13 +108,15 @@ public class GenerateSample extends AsyncTask<Void, Void, Boolean> {
 			n_base.add(r);
 			n_10=q;
 		}
-		Log.d("GEN","Base "+baseX+": "+n_base);
 	}
 	
+	/** Compute the next point in the 2-dimensional Halton sequence
+	 * @return ordered (x,y) coordinates within the unit square
+	 * @see #vanDerCorput
+	 */
 	private float[] nextPoint() { 
-		float x = vanDerCorput(inputX, 2); 
-		float y = vanDerCorput(inputY, 3); 
-		Log.d("GEN","[x,y]: "+x+","+y);
+		float x = vanDerCorput(mInputX, 2); 
+		float y = vanDerCorput(mInputY, 3); 
 		return (new float[] { x, y }); 
 	} 
 
@@ -126,25 +158,62 @@ public class GenerateSample extends AsyncTask<Void, Void, Boolean> {
 	} 
 	
     
+	/** Generate a balanced acceptance sample (BAS)
+	 * @return number of rejected samples or -1 on failure
+	 */
 	@Override
-	protected Boolean doInBackground(Void... params) {
-		for(int i=0;i<nSample;i++){
-			float[] coords = bb.getSample(nextPoint());
-			if(-1==dbHelper.addValue(studyName,i,SampleType.SAMPLE,coords[0],coords[1])){
-				Log.d("DBentry","Failed to insert row in the database");
-				return false;
-			}
-		}
-		for(int i=0;i<nOversample;i++){
-			float[] coords = bb.getSample(nextPoint());
-			if(-1==dbHelper.addValue(studyName,i+nSample,SampleType.OVERSAMPLE,coords[0],coords[1])){
-				Log.d("DBentry","Failed to insert row in the database");
-				return false;
-			}
-		}
+	protected Integer doInBackground(Void... params) {
+		SampleType sampleType = SampleType.SAMPLE;
+		int rejectedCount = 0;
 		
+		// Read in the study area definition (shapefile)
+		try{
+			mStudyArea = new StudyArea("NEED TO READ SHAPEFILE", mStudyName);
+		}catch(IOException e){
+			return GENERATE_SAMPLE_FILEIO_ERROR;
+		}
+		Log.d("generate","need to read in the file: "+mStudyAreaFilename);
+		
+		// Get ready to generate samples
+		// Initialize the seed buffers (storage space and values)
+		// The number of points should reflect both the size of the 
+		// sample and the likelihood that a point would like outside
+		// the study area.
+		int nPoints = mStudyArea.estimateNumPointsNeeded(mNumberSamples + mNumberOversamples);
+		mInputX = initSeedBuffer(nPoints, sBaseX);
+		mInputY = initSeedBuffer(nPoints, sBaseY);
+
+		// Generate samples
+		for(int i=0;i<(mNumberSamples+mNumberOversamples);i++){
+			float[] coords = mStudyArea.getSampleLocation(nextPoint());
+			if(coords == null){
+				// if the point isn't within the study area, reject it now
+				rejectedCount++;
+				i--;
+			}else{
+				// if the point is in the study area, add it to the database
+				if(-1==mDbHelper.addValue(mStudyName,i,sampleType,coords[0],coords[1])){
+					Log.d("DBentry","Failed to insert row in the database");
+					return GENERATE_SAMPLE_DATABASE_ERROR;
+				}
+				if(i==mNumberSamples) sampleType = SampleType.OVERSAMPLE;
+			}
+		}
 		//Log.d("generate", dbHelper.prettyPrint()); 
-		return true;
+		return rejectedCount;
 	} 
+	
+	@Override
+	public void onPostExecute(Integer i){
+		if(i<0){
+			Log.d("generate","Error! "+i);
+			// tell the user what happened!
+			// GENERATE_SAMPLE_FILEIO_ERROR
+			// GENERATE_SAMPLE_DATABASE_ERROR
+		}else{
+			Log.d("generate", "Number of rejected points: "+i);
+		}
+	}
+
 	
 }

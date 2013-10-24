@@ -2,10 +2,10 @@ package west.sample.bas;
 
 public class BoundingBox { 
 	
-	private float xMin; 
-	private float yMin; 
-	private float xRange; 
-	private float yRange; 
+	private float mMinX; 
+	private float mMinY; 
+	private float mWidth; 
+	private float mHeight; 
 
 	/**
 	 * Create a rectangular bounding box based on the coordinates 
@@ -16,10 +16,10 @@ public class BoundingBox {
 	 * @param y2 y coordinate of a second point
 	 */
 	public BoundingBox(float x1, float y1, float x2, float y2) { 
-		xMin = Math.min(x1, x2); 
-		xRange = Math.abs(x1 - x2); 
-		yMin = Math.min(y1, y2); 
-		yRange = Math.abs(y1 - y2); 
+		mMinX = Math.min(x1, x2); 
+		mWidth = Math.abs(x1 - x2); 
+		mMinY = Math.min(y1, y2); 
+		mHeight = Math.abs(y1 - y2); 
 	} 
 	
 	/**
@@ -30,10 +30,10 @@ public class BoundingBox {
 	 * @param height vertical size of the bounding box
 	 */
 	public BoundingBox(float[] bottomLeft, float width, float height) { 
-		xMin = bottomLeft[0]; 
-		yMin = bottomLeft[1]; 
-		xRange = width; 
-		yRange = height; 
+		mMinX = bottomLeft[0]; 
+		mMinY = bottomLeft[1]; 
+		mWidth = width; 
+		mHeight = height; 
 	} 
 	
 	/** 
@@ -43,8 +43,8 @@ public class BoundingBox {
 	 * @return array containing location of the point within the bounding box
 	 */
 	public float[] getSample(float x, float y) { 
-		float x_bb = xRange * x + xMin; 
-		float y_bb = yRange * y + yMin; 
+		float x_bb = mWidth * x + mMinX; 
+		float y_bb = mHeight * y + mMinY; 
 		return (new float[] { x_bb, y_bb }); 
 	} 
 	
@@ -63,7 +63,7 @@ public class BoundingBox {
 	 * @return area as square units
 	 */
 	public float getArea() { 
-		return xRange * yRange; 
+		return mWidth * mHeight; 
 	} 
 	
 }

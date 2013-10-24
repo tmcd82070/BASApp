@@ -3,9 +3,9 @@ package west.sample.bas;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
+import west.sample.bas.SamplePoint.SampleType;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -65,11 +65,11 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 	private static final String DELETE_TABLE = 
 			"DROP TABLE IF EXISTS "+SampleInfo.TABLE_NAME;
 
-	SQLiteDatabase db;
+	private SQLiteDatabase mDatabase;
 	
 	public SampleDatabaseHelper(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
-		db = getWritableDatabase();
+		mDatabase = getWritableDatabase();
 	}
 
 	@Override
@@ -99,7 +99,7 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 	 * @param y y coordinate of the point
 	 * @return primary key value (_ID) of the new row
 	 */
-	public long addValue(String study, int number, SamplePoint.SampleType type, double x, double y){
+	public long addValue(String study, int number, SampleType type, double x, double y){
 		ContentValues data = new ContentValues();
 		data.put(SampleInfo.COLUMN_NAME_STUDY, study);
 		data.put(SampleInfo.COLUMN_NAME_NUMBER, number);
@@ -110,28 +110,37 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 		// Initially the status is equal to the type
 		data.put(SampleInfo.COLUMN_NAME_STATUS, type.getString());
 
-		return db.insert(SampleInfo.TABLE_NAME, null, data);
+		return mDatabase.insert(SampleInfo.TABLE_NAME, null, data);
 	}
 	
 	public ArrayList<String> getListOfStudies(){
-		Cursor cursor= db.rawQuery("SELECT DISTINCT "+SampleInfo.COLUMN_NAME_STUDY+
-				" FROM "+SampleInfo.TABLE_NAME, null);
-		int columnIndex = cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STUDY);
-		int numStudies = cursor.getCount();
-		if(numStudies>0){
-			ArrayList<String> result = new ArrayList<String>(cursor.getCount());
+		String query = "SELECT DISTINCT "+SampleInfo.COLUMN_NAME_STUDY+
+				" FROM "+SampleInfo.TABLE_NAME;
+		return convertCursorToStrings(query,SampleInfo.COLUMN_NAME_STUDY);
+	}
+	
+	public Cursor getStudyDetails(String studyName){
+		String query = "SELECT * FROM "+SampleInfo.TABLE_NAME+
+				" WHERE "+SampleInfo.COLUMN_NAME_STUDY+"='"+studyName+"'";
+		return mDatabase.rawQuery(query, null);
+	}
+	
+	private ArrayList<String> convertCursorToStrings(String query, String columnName){
+		Cursor cursor = mDatabase.rawQuery(query, null);
+		int numRows = cursor.getCount();
+		ArrayList<String> result = new ArrayList<String>(numRows);
+		if(numRows>0){
+			int columnIndex = cursor.getColumnIndex(columnName);
 			while(cursor.moveToNext()){
 				result.add(cursor.getString(columnIndex));
 			}
-			return result;
-		}else{
-			return null;
 		}
+		return result;
 	}
 	
 	public String prettyPrint() {
 		String result = ""; 
-		Cursor cursor = db.rawQuery("SELECT * FROM "+SampleInfo.TABLE_NAME, null);
+		Cursor cursor = mDatabase.rawQuery("SELECT * FROM "+SampleInfo.TABLE_NAME, null);
 		while(cursor.moveToNext()){
 			String commentString = cursor.getString(7);
 			if(commentString==null) commentString = "[No comments]";

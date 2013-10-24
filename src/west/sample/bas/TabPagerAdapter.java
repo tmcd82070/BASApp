@@ -12,9 +12,9 @@ public class TabPagerAdapter extends FragmentPagerAdapter {
 	
 	public Fragment getItem(int tabIndex) { 
 		switch(tabIndex) { 
-		case 0: // '\0' 
+		case 0:  
 			return new MapFragment(); 
-		case 1: // '\001' 
+		case 1:  
 			return new TableFragment(); 
 		} 
 		Log.d("TabPagerAdapter", "Attempt to get fragment that has not been implemented"); 
