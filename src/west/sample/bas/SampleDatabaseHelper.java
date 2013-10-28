@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import west.sample.bas.SamplePoint.SampleType;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -112,7 +113,7 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 
 		return mDatabase.insert(SampleInfo.TABLE_NAME, null, data);
 	}
-	
+
 	public ArrayList<String> getListOfStudies(){
 		String query = "SELECT DISTINCT "+SampleInfo.COLUMN_NAME_STUDY+
 				" FROM "+SampleInfo.TABLE_NAME;

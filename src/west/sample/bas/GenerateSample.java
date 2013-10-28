@@ -69,7 +69,7 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 		
 		this.mNumberSamples = nSample<0 ? 0 : nSample; 
 		this.mNumberOversamples = nOversample<0 ? 0 : nOversample; 
-	} 
+	}
 	
 	/** Initialize a buffer to hold the digits of the seed (in the 
 	 * given base) to be used when generating the Halton sequence.
@@ -94,29 +94,13 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 	}
 	
 	
-	/**
-	 * The least significant n-digit (e.g., bit) is listed in position 0
-	 * @param n_10 number in base 10
-	 * @param baseX desired base of the output
-	 * @param n_base list of base 10 integers representing baseX digits
-	 */
-	private void convertToBase(int n_10, int baseX, ArrayList<Integer> n_base) { 
-		if(n_10<0) n_10*=-1;
-		while(n_10>0){
-			int q = n_10/baseX;
-			int r = n_10-q*baseX;
-			n_base.add(r);
-			n_10=q;
-		}
-	}
-	
 	/** Compute the next point in the 2-dimensional Halton sequence
 	 * @return ordered (x,y) coordinates within the unit square
 	 * @see #vanDerCorput
 	 */
 	private float[] nextPoint() { 
-		float x = vanDerCorput(mInputX, 2); 
-		float y = vanDerCorput(mInputY, 3); 
+		float x = vanDerCorput(mInputX, sBaseX); 
+		float y = vanDerCorput(mInputY, sBaseY); 
 		return (new float[] { x, y }); 
 	} 
 
@@ -130,11 +114,20 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 	 * 
 	 * The base is assumed to be non-zero
 	 * 
-	 * @param n_base the number for which the sum shoud be computed
-	 * @param base the base in which n_base is represented also used as 
-	 * the demonimator in the division) 
-	 * @return decimal value [0,1]
+	 * @param n_10 number in base 10
+	 * @param baseX desired base of the output
+	 * @param n_base list of base 10 integers representing baseX digits
 	 */
+	private void convertToBase(int n_10, int baseX, ArrayList<Integer> n_base) { 
+		if(n_10<0) n_10*=-1;
+		while(n_10>0){
+			int q = n_10/baseX;
+			int r = n_10-q*baseX;
+			n_base.add(r);
+			n_10=q;
+		}
+	}
+
 	private float vanDerCorput(ArrayList<Integer> n_base, int base) { 
 		float sum = 0.0F; 
 		int denom = base; 
@@ -157,8 +150,7 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 		return sum; 
 	} 
 	
-    
-	/** Generate a balanced acceptance sample (BAS)
+   	/** Generate a balanced acceptance sample (BAS)
 	 * @return number of rejected samples or -1 on failure
 	 */
 	@Override
@@ -214,6 +206,4 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 			Log.d("generate", "Number of rejected points: "+i);
 		}
 	}
-
-	
 }

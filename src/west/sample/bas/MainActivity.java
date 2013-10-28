@@ -7,6 +7,7 @@ import android.app.ActionBar.Tab;
 import android.app.AlertDialog;
 import android.app.FragmentTransaction;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
@@ -25,6 +26,10 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.*;
+import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
+import android.widget.*; 
 
 public class MainActivity extends FragmentActivity {
 
@@ -38,12 +43,12 @@ public class MainActivity extends FragmentActivity {
 	
 	// Static for now... figure out how to pass it around
 	protected static String currentStudy;
-
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		initInteraction();
+		initInteraction(savedInstanceState);
 		
 		// restore previous state
 		if (savedInstanceState != null) {
@@ -64,7 +69,7 @@ public class MainActivity extends FragmentActivity {
 	/** Set up the main layout with two views: a map and a table
 	 * The user navigates between these views using either a swipe
 	 * gesture or by selecting the respective tabs. */
-	private void initInteraction() {
+	private void initInteraction(Bundle savedInstanceState) {
 		setContentView(R.layout.activity_main);
 		mTabAdapter = new TabPagerAdapter(getSupportFragmentManager());
 		mViewPager = (ViewPager) findViewById(R.id.pager_tabLayout);
@@ -106,6 +111,16 @@ public class MainActivity extends FragmentActivity {
 		mActionBar.addTab(mActionBar.newTab()
 				.setText(getString(R.string.label_table))
 				.setTabListener(tabListener));
+		
+		if(savedInstanceState != null) { 
+			int currentTab = savedInstanceState.getInt("tab", 0); 
+			actionBar.setSelectedNavigationItem(currentTab); 
+			viewPager.setCurrentItem(currentTab); 
+		} else { 
+			actionBar.setSelectedNavigationItem(0); 
+			viewPager.setCurrentItem(0); 
+		} 
+
 	}
 
 	/** Store the view that was active and the study that is displayed */
@@ -120,7 +135,7 @@ public class MainActivity extends FragmentActivity {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -143,7 +158,7 @@ public class MainActivity extends FragmentActivity {
 	 * file is not checked until attempting to create the BAS.
 	 * 
 	 * A recommendation is provided for the number of oversamples.
-	 */
+	 */	
 	private void createBAS() {
 		LayoutInflater inflater = (LayoutInflater) getSystemService("layout_inflater");
 		View layout = inflater.inflate(R.layout.dialog_create,
@@ -201,7 +216,7 @@ public class MainActivity extends FragmentActivity {
 				
 			}
 		});
-
+		
 		AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
 		builder.setView(layout);
 		builder.setPositiveButton("Create", null);
@@ -224,40 +239,49 @@ public class MainActivity extends FragmentActivity {
 						String studyName = getCleanString(studyNameTxt);
 						int nSamples = getInt(numberSamplesTxt);
 						int nOversamples = getInt(numberOversamplesTxt);
-
+						String studyAreaFilename = filenameLabel.getText().toString();
+						
+						boolean isValid = true;
+						
 						// highlight missing values
-						filenameLabel.setTextColor(getResources().getColor(
-								android.R.color.black));
-						if (studyName.isEmpty()) {
-							displayToast("Invalid characters in the study name");
-							studyNameTxt.setText("");
-							studyNameLabel.setTextColor(getResources()
-									.getColor(R.color.highlight));
+						if(studyName.isEmpty()){
+							displayToast("Empty study name or invalid characters");
+							numberSamplesLabel.setTextColor(getResources().getColor(R.color.highlight));
+							isValid = false;	
+						}else{
+							numberSamplesLabel.setTextColor(getResources().getColor(android.R.color.black));
 						}
-						if (nSamples < 1) {
-							studyNameLabel.setTextColor(getResources()
-									.getColor(android.R.color.black));
-							numberSamplesLabel.setTextColor(getResources()
-									.getColor(R.color.highlight));
-						} else if (nOversamples < 0) {
-							numberSamplesLabel.setTextColor(getResources()
-									.getColor(android.R.color.black));
-							numberOversamplesLabel.setTextColor(getResources()
-									.getColor(R.color.highlight));
-						} else if (mStudyAreaFilename != null) {
-							GenerateSample g = new GenerateSample(
-									getBaseContext(), studyName,
-									mStudyAreaFilename, nSamples, nOversamples);
+
+						if(nSamples<1){
+							displayToast("New studies must have at least one sample");
+							numberSamplesLabel.setTextColor(getResources().getColor(R.color.highlight));
+							isValid = false;
+						}else{
+							numberSamplesLabel.setTextColor(getResources().getColor(android.R.color.black));
+						}
+						
+						if(nOversamples<0){
+							displayToast("A number of oversamples is required (may be zero)");
+							numberOversamplesLabel.setTextColor(getResources().getColor(R.color.highlight));
+							isValid = false;
+						}else{
+							numberOversamplesLabel.setTextColor(getResources().getColor(android.R.color.black));
+						}
+						
+						if(studyAreaFilename == null || studyAreaFilename.isEmpty()){
+							displayToast("A study area is required");
+							filenameLabel.setTextColor(getResources().getColor(R.color.highlight));
+							isValid = false;
+						}else{
+							filenameLabel.setTextColor(getResources().getColor(android.R.color.black));
+						}
+						
+						if(isValid){
+							GenerateSample g = new GenerateSample(getBaseContext(),studyAreaFilename,nSamples,nOversamples);
 							g.execute();
 							dialog.dismiss();
-						} else {
-							numberOversamplesLabel.setTextColor(getResources()
-									.getColor(android.R.color.black));
-							filenameLabel.setTextColor(getResources().getColor(
-									R.color.highlight));
 						}
-					}
-				});
+					}});
 	}
 
 	protected int getInt(EditText textField) {
@@ -358,5 +382,4 @@ public class MainActivity extends FragmentActivity {
 	private void displayToast(String message) {
 		Toast.makeText(this, message, Toast.LENGTH_LONG).show();
 	}
-
 }

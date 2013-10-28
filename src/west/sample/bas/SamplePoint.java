@@ -58,8 +58,5 @@ public class SamplePoint {
 			if(status.equals("collected")) return COLLECTED;
 			return null;
 		}
-	}
-	
-
-	
+	}	
 }
