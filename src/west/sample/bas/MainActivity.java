@@ -7,6 +7,7 @@ import android.app.ActionBar.Tab;
 import android.app.AlertDialog;
 import android.app.FragmentTransaction;
 import android.content.DialogInterface;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
@@ -23,6 +24,7 @@ import android.view.WindowManager.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,12 +32,11 @@ import android.widget.Toast;
 public class MainActivity extends FragmentActivity {
 
 	// Layout objects that facilitate interaction
-	private TabPagerAdapter mTabAdapter;
-	private ViewPager mViewPager;
-	private ActionBar mActionBar;
+	protected TabPagerAdapter mTabAdapter;
+	protected ViewPager mViewPager;
+	protected ActionBar mActionBar;
 
-	// Static for now... figure out how to pass it around
-	protected static String sCurrentStudy;
+	protected String mCurrentStudy;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +47,7 @@ public class MainActivity extends FragmentActivity {
 		// restore previous state
 		if (savedInstanceState != null) {
 			int currentTab = savedInstanceState.getInt("tab", 0);
-			sCurrentStudy = savedInstanceState.getString("study");
+			mCurrentStudy = savedInstanceState.getString("study");
 			mActionBar.setSelectedNavigationItem(currentTab);
 			mViewPager.setCurrentItem(currentTab);
 		} else {
@@ -120,7 +121,7 @@ public class MainActivity extends FragmentActivity {
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		outState.putInt("tab", getActionBar().getSelectedNavigationIndex());
-		outState.putString("study", sCurrentStudy);
+		outState.putString("study", mCurrentStudy);
 	}
 
 	@Override
@@ -153,6 +154,10 @@ public class MainActivity extends FragmentActivity {
 	 * A recommendation is provided for the number of oversamples.
 	 */	
 	private void createBAS() {
+		final int black = getResources().getColor(android.R.color.black);
+		final int highlight = getResources().getColor(R.color.highlight);
+		final int warning = getResources().getColor(R.color.warning);
+		
 		LayoutInflater inflater = (LayoutInflater) getSystemService("layout_inflater");
 		View layout = inflater.inflate(R.layout.dialog_create,
 				(ViewGroup) findViewById(R.layout.activity_main));
@@ -182,6 +187,17 @@ public class MainActivity extends FragmentActivity {
 				Log.d("study name","Check if the study name already exists");
 			}});
 		
+		numberSamplesTxt.setOnFocusChangeListener(new OnFocusChangeListener(){
+			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+				if(!hasFocus){
+					String raw = numberSamplesTxt.getText().toString();
+					if(raw.length()>0){
+						numberSamplesLabel.setTextColor(black);
+					}
+				}
+			}});
+		
 		// Provide a recommendation for the number of oversamples
 		numberOversamplesTxt
 				.setOnFocusChangeListener(new OnFocusChangeListener() {
@@ -192,6 +208,12 @@ public class MainActivity extends FragmentActivity {
 							numberOversamplesTxt.setHint("Recommended: "
 									+ getInt(numberSamplesTxt)*2);
 						}
+						if(!hasFocus){
+							String raw = numberOversamplesTxt.getText().toString();
+							if(raw.length()>0){
+								numberOversamplesLabel.setTextColor(black);
+							}
+						} 
 					}
 				});
 
@@ -202,10 +224,7 @@ public class MainActivity extends FragmentActivity {
 			@Override
 			public void onClick(View v) {
 				displayToast("Implement the file browser");
-				studyNameLabel.setTextColor(getResources().getColor(
-						android.R.color.black));
-				filenameLabel.setTextColor(getResources().getColor(
-						android.R.color.black));
+				filenameLabel.setTextColor(black);
 				filenameTxt.setText("Selected!");
 			}
 		});
@@ -234,45 +253,72 @@ public class MainActivity extends FragmentActivity {
 						int nSamples = getInt(numberSamplesTxt);
 						int nOversamples = getInt(numberOversamplesTxt);
 						String studyAreaFilename = filenameTxt.getText().toString();
+						
 						boolean isValid = true;
+						// Only display one toast per check
+						boolean displayedToast = false;
 						
 						// highlight missing values
 						if(studyName.isEmpty()){
 							displayToast("Empty study name or invalid characters");
-							numberSamplesLabel.setTextColor(getResources().getColor(R.color.highlight));
+							displayedToast=true;
+							studyNameLabel.setTextColor(highlight);
 							isValid = false;	
 						}else{
-							numberSamplesLabel.setTextColor(getResources().getColor(android.R.color.black));
+							if(!studyName.equals(studyNameTxt.getText().toString())){
+								studyNameTxt.setText(studyName);
+								studyNameLabel.setTextColor(warning);
+								displayToast("Revised study name to contain only\nalpha-numeric characters and underscore");
+								displayedToast = true;
+								isValid=false;
+							}else{
+								studyNameLabel.setTextColor(black);
+							}
 						}
 
 						if(nSamples<1){
-							displayToast("New studies must have at least one sample");
-							numberSamplesLabel.setTextColor(getResources().getColor(R.color.highlight));
+							if(!displayedToast){
+								displayToast("New studies must have at least one sample");
+								displayedToast = true;
+							}
+							numberSamplesLabel.setTextColor(highlight);
 							isValid = false;
 						}else{
-							numberSamplesLabel.setTextColor(getResources().getColor(android.R.color.black));
+							numberSamplesLabel.setTextColor(black);
 						}
 						
 						if(nOversamples<0){
-							displayToast("A number of oversamples is required (may be zero)");
-							numberOversamplesLabel.setTextColor(getResources().getColor(R.color.highlight));
+							if(!displayedToast){
+								displayToast("A number of oversamples is required (may be zero)");
+								displayedToast = true;
+							}
+							numberOversamplesLabel.setTextColor(highlight);
 							isValid = false;
 						}else{
-							numberOversamplesLabel.setTextColor(getResources().getColor(android.R.color.black));
+							numberOversamplesLabel.setTextColor(black);
 						}
 						
 						if(studyAreaFilename == null || studyAreaFilename.isEmpty() ||
 								studyAreaFilename.equals(getResources().getString(R.string.label_studyAreaFilename))){
-							displayToast("A study area is required");
-							filenameLabel.setTextColor(getResources().getColor(R.color.highlight));
+							if(!displayedToast){
+								displayToast("A study area is required");
+								displayedToast = true;
+							}
+							filenameLabel.setTextColor(highlight);
 							isValid = false;
 						}else{
-							filenameLabel.setTextColor(getResources().getColor(android.R.color.black));
+							filenameLabel.setTextColor(black);
 						}
 						
 						if(isValid){
+							mCurrentStudy = studyName;
 							GenerateSample g = new GenerateSample(getBaseContext(),
-									studyName,studyAreaFilename,nSamples,nOversamples);
+									studyName,studyAreaFilename,nSamples,nOversamples,
+									new RefreshCallback(){
+										@Override
+										public void onTaskComplete() {
+											refreshMainDisplays();
+										}});
 							g.execute();
 							dialog.dismiss();
 						}
@@ -289,10 +335,16 @@ public class MainActivity extends FragmentActivity {
 		return -1;
 	}
 
+	/**
+	 * Given an input field return a string that contains
+	 * only alpha-numeric characters and underscore
+	 * @param textField UI field that contains the user input
+	 * @return cleaned string
+	 */
 	protected String getCleanString(EditText textField) {
 		String raw = textField.getText().toString();
-		// TODO strip non alpha characters
-		return "clean" + raw;
+		raw = raw.replaceAll(" ","_");
+		return raw.replaceAll("[^a-zA-Z0-9_]", "");
 	}
 
 	/** Present a list of studies (as found in the database) to the user
@@ -329,7 +381,7 @@ public class MainActivity extends FragmentActivity {
 				public void onClick(DialogInterface dialog, int which) {
 					Object selected = spinner.getSelectedItem();
 					if (selected instanceof String) {
-						sCurrentStudy = (String) spinner.getSelectedItem();
+						mCurrentStudy = (String) spinner.getSelectedItem();
 						// refresh the display to reflect the change
 						refreshMainDisplays();
 					} else {
@@ -352,29 +404,24 @@ public class MainActivity extends FragmentActivity {
 	}
 
 	private void refreshMainDisplays(){
-		displayToast("Refresh the map and table");
+		displayToast("Refresh the map");
+		
+		boolean isStudySet = false;
 		
 		// refresh the map
 		
 		// refresh the table
-		//this.getFragmentManager().
-		//View myList = this.getWindow().findViewById(R.id.layout_table);
-//		if(myList instanceOf TableFragment){
-//			Log.d("table","yup, it's the thing I want.");
-//		}
-//		LoadSample ls = new LoadSample(new FragmentCallback() {
-//
-//            @Override
-//            public void onTaskDone() {
-//                methodThatDoesSomethingWhenTaskIsDone();
-//				adapter.notifyDataSetChanged();
-//            }
-//        });
-		
-		//((ListView) findViewById(android.R.id.list)).getAdapter();
-		// TODO refresh the current view (map or table)
-		//displayToast("Selected "+ selectedItem);
-
+		ListView myList = (ListView) this.getWindow().findViewById(android.R.id.list);
+		if(myList!=null){
+			SampleDatabaseHelper db = new SampleDatabaseHelper(getBaseContext());
+			Cursor cursor = db.getStudyDetails(mCurrentStudy);
+			DetailListAdapter adapter = (DetailListAdapter) myList.getAdapter();
+			adapter.changeCursor(cursor);
+			//TODO figure out how to get all of them to update
+			myList.invalidate();
+			isStudySet = true;
+		}
+		if(isStudySet) setTitle("Sample: "+mCurrentStudy);
 	}
 	
 	private void displayToast(String message) {

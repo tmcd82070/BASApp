@@ -28,7 +28,7 @@ public class DetailListAdapter extends SimpleCursorAdapter{
 		double x = cursor.getDouble(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_X));
 		double y = cursor.getDouble(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_Y));
 		Log.d("details","determine if the user is close to the point: "+x+","+y+" (gps "+gpsX+","+gpsY+")");
-		if(x<2.5) view.setBackgroundColor(view.getResources().getColor(R.color.near_me));
+//		if(x<1) view.setBackgroundColor(view.getResources().getColor(R.color.near_me));
 	}
 
 	public void setCurrentLocation(double x, double y){

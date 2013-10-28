@@ -10,7 +10,7 @@
     <string name="action_load">Load Existing BAS</string>
     
     <!-- UI display -->
-    <string name="display_id">[Sample ID]</string>
+    <string name="display_number">[Sample Number]</string>
     <string name="display_status">[Status]</string>
     <string name="display_comments">[Comments]</string>
     
@@ -34,7 +34,7 @@
     <string name="hint_noSampleName">No existing BAS</string>
 	<string name="hint_sampleSize">Number of samples (n)</string>
     <string name="hint_oversampleSize">Samples in reserve</string>
-	<string name="hint_map">Use the menu to generate a BAS or load a file.</string>
+	<string name="hint_noStudy">Use the menu to generate a BAS or\nload an existing sample.</string>
     
     <!-- Accessibility description -->
     <string name="describe_studyArea">Graphical display of study area boundary</string>
@@ -42,4 +42,5 @@
     <!-- Colors to use in the display -->
     <color name="highlight">#AA2222</color>
     <color name="near_me">#FFFF33</color>
+    <color name="warning">#CCCC00</color>
 </resources>

@@ -2,8 +2,6 @@ package west.sample.bas;
 
 import java.util.Locale;
 
-import west.sample.bas.SamplePoint.Status;
-
 /** The SamplePoint class encapsulates all of the information associated with 
  * a single sample point.
  * 

@@ -39,6 +39,7 @@ public class ColoredTextView extends TextView {
 		case REJECT:
 			mIsSample = true;
 			mIsRejected = true;
+			break;
 		case OVERSAMPLE:
 			// do nothing (isSample=false)
 		}

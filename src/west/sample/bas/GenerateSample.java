@@ -48,6 +48,8 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 	private int mNumberOversamples;
 	private String mStudyAreaFilename;
 	private String mStudyName; 
+	
+	private RefreshCallback callback;
 
 	
 	/**
@@ -57,10 +59,13 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 	 * @param studyAreaFilename
 	 * @param nSample
 	 * @param nOversample
+	 * @param refreshCallback 
 	 */
-	public GenerateSample(Context c, String studyName, String studyAreaFilename, int nSample, int nOversample) {
+	public GenerateSample(Context c, String studyName, String studyAreaFilename, int nSample, int nOversample, RefreshCallback refreshCallback) {
 		mStudyAreaFilename = studyAreaFilename;
 		mStudyName = studyName;
+		
+		callback = refreshCallback;
 		
 		// Connect to the database where the samples will be stored
 		mDbHelper = new SampleDatabaseHelper(c);
@@ -184,11 +189,12 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 				i--;
 			}else{
 				// if the point is in the study area, add it to the database
-				if(-1==mDbHelper.addValue(mStudyName,i,sampleType,coords[0],coords[1])){
+				// use a 1-up counter (for display to users)
+				if(-1==mDbHelper.addValue(mStudyName,i+1,sampleType,coords[0],coords[1])){
 					Log.d("DBentry","Failed to insert row in the database");
 					return GENERATE_SAMPLE_DATABASE_ERROR;
 				}
-				if(i==mNumberSamples) sampleType = SampleType.OVERSAMPLE;
+				if(i==mNumberSamples-1) sampleType = SampleType.OVERSAMPLE;
 			}
 		}
 		//Log.d("generate", dbHelper.prettyPrint()); 
@@ -203,10 +209,9 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 			// GENERATE_SAMPLE_FILEIO_ERROR
 			// GENERATE_SAMPLE_DATABASE_ERROR
 		}else{
+			// TODO record the nubmer of rejected points?
 			Log.d("generate", "Number of rejected points: "+i);
-			//TODO refresh the map and table
-			// mStudyAreaFilename = studyAreaFilename;
-			
+			if(callback!=null) callback.onTaskComplete();
 		}
 	}
 }

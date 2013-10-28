@@ -6,12 +6,12 @@
     android:orientation="vertical" >
 
     <TextView
-        android:id="@+id/text_sampleID"
+        android:id="@+id/text_sampleNumber"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:text="@string/display_id"
+        android:text="@string/display_number"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <west.sample.bas.ColoredTextView
@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/text_sampleID"
+        android:layout_below="@+id/text_sampleNumber"
         android:text="@string/display_comments"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
