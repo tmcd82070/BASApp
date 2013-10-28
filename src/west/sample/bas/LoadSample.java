@@ -18,7 +18,7 @@ public class LoadSample extends AsyncTask<Void, Void, Boolean> {
 	
 	public LoadSample(Context c, ListView table){
 		this.mContext = c;
-		this.mStudyName = MainActivity.currentStudy;
+		this.mStudyName = MainActivity.sCurrentStudy;
 		this.mTable = table;
 	}
 

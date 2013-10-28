@@ -123,6 +123,7 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 	public Cursor getStudyDetails(String studyName){
 		String query = "SELECT * FROM "+SampleInfo.TABLE_NAME+
 				" WHERE "+SampleInfo.COLUMN_NAME_STUDY+"='"+studyName+"'";
+		if(studyName==null) return null;
 		return mDatabase.rawQuery(query, null);
 	}
 	

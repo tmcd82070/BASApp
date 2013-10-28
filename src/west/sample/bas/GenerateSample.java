@@ -204,6 +204,9 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 			// GENERATE_SAMPLE_DATABASE_ERROR
 		}else{
 			Log.d("generate", "Number of rejected points: "+i);
+			//TODO refresh the map and table
+			// mStudyAreaFilename = studyAreaFilename;
+			
 		}
 	}
 }

@@ -7,7 +7,6 @@ import android.app.ActionBar.Tab;
 import android.app.AlertDialog;
 import android.app.FragmentTransaction;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
@@ -20,16 +19,13 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
+import android.view.WindowManager.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.view.*;
-import android.view.View.OnClickListener;
-import android.view.View.OnFocusChangeListener;
-import android.widget.*; 
 
 public class MainActivity extends FragmentActivity {
 
@@ -38,12 +34,9 @@ public class MainActivity extends FragmentActivity {
 	private ViewPager mViewPager;
 	private ActionBar mActionBar;
 
-	/** The name of the shapefile that delineates the study area */ 
-	private String mStudyAreaFilename;
-	
 	// Static for now... figure out how to pass it around
-	protected static String currentStudy;
-	
+	protected static String sCurrentStudy;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -53,7 +46,7 @@ public class MainActivity extends FragmentActivity {
 		// restore previous state
 		if (savedInstanceState != null) {
 			int currentTab = savedInstanceState.getInt("tab", 0);
-			currentStudy = savedInstanceState.getString("study");
+			sCurrentStudy = savedInstanceState.getString("study");
 			mActionBar.setSelectedNavigationItem(currentTab);
 			mViewPager.setCurrentItem(currentTab);
 		} else {
@@ -114,11 +107,11 @@ public class MainActivity extends FragmentActivity {
 		
 		if(savedInstanceState != null) { 
 			int currentTab = savedInstanceState.getInt("tab", 0); 
-			actionBar.setSelectedNavigationItem(currentTab); 
-			viewPager.setCurrentItem(currentTab); 
+			mActionBar.setSelectedNavigationItem(currentTab); 
+			mViewPager.setCurrentItem(currentTab); 
 		} else { 
-			actionBar.setSelectedNavigationItem(0); 
-			viewPager.setCurrentItem(0); 
+			mActionBar.setSelectedNavigationItem(0); 
+			mViewPager.setCurrentItem(0); 
 		} 
 
 	}
@@ -127,7 +120,7 @@ public class MainActivity extends FragmentActivity {
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		outState.putInt("tab", getActionBar().getSelectedNavigationIndex());
-		outState.putString("study", currentStudy);
+		outState.putString("study", sCurrentStudy);
 	}
 
 	@Override
@@ -209,11 +202,11 @@ public class MainActivity extends FragmentActivity {
 			@Override
 			public void onClick(View v) {
 				displayToast("Implement the file browser");
+				studyNameLabel.setTextColor(getResources().getColor(
+						android.R.color.black));
 				filenameLabel.setTextColor(getResources().getColor(
 						android.R.color.black));
 				filenameTxt.setText("Selected!");
-				mStudyAreaFilename = "selected";
-				
 			}
 		});
 		
@@ -229,6 +222,7 @@ public class MainActivity extends FragmentActivity {
 				});
 
 		final AlertDialog dialog = builder.create();
+		dialog.getWindow().setSoftInputMode(LayoutParams.SOFT_INPUT_STATE_VISIBLE);
 		dialog.show();
 		dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(
 				new View.OnClickListener() {
@@ -239,8 +233,7 @@ public class MainActivity extends FragmentActivity {
 						String studyName = getCleanString(studyNameTxt);
 						int nSamples = getInt(numberSamplesTxt);
 						int nOversamples = getInt(numberOversamplesTxt);
-						String studyAreaFilename = filenameLabel.getText().toString();
-						
+						String studyAreaFilename = filenameTxt.getText().toString();
 						boolean isValid = true;
 						
 						// highlight missing values
@@ -268,7 +261,8 @@ public class MainActivity extends FragmentActivity {
 							numberOversamplesLabel.setTextColor(getResources().getColor(android.R.color.black));
 						}
 						
-						if(studyAreaFilename == null || studyAreaFilename.isEmpty()){
+						if(studyAreaFilename == null || studyAreaFilename.isEmpty() ||
+								studyAreaFilename.equals(getResources().getString(R.string.label_studyAreaFilename))){
 							displayToast("A study area is required");
 							filenameLabel.setTextColor(getResources().getColor(R.color.highlight));
 							isValid = false;
@@ -277,7 +271,8 @@ public class MainActivity extends FragmentActivity {
 						}
 						
 						if(isValid){
-							GenerateSample g = new GenerateSample(getBaseContext(),studyAreaFilename,nSamples,nOversamples);
+							GenerateSample g = new GenerateSample(getBaseContext(),
+									studyName,studyAreaFilename,nSamples,nOversamples);
 							g.execute();
 							dialog.dismiss();
 						}
@@ -334,8 +329,7 @@ public class MainActivity extends FragmentActivity {
 				public void onClick(DialogInterface dialog, int which) {
 					Object selected = spinner.getSelectedItem();
 					if (selected instanceof String) {
-						currentStudy = (String) spinner.getSelectedItem();
-						
+						sCurrentStudy = (String) spinner.getSelectedItem();
 						// refresh the display to reflect the change
 						refreshMainDisplays();
 					} else {
@@ -363,7 +357,11 @@ public class MainActivity extends FragmentActivity {
 		// refresh the map
 		
 		// refresh the table
-		
+		//this.getFragmentManager().
+		//View myList = this.getWindow().findViewById(R.id.layout_table);
+//		if(myList instanceOf TableFragment){
+//			Log.d("table","yup, it's the thing I want.");
+//		}
 //		LoadSample ls = new LoadSample(new FragmentCallback() {
 //
 //            @Override

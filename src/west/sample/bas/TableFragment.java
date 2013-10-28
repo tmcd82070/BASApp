@@ -8,6 +8,7 @@ import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class TableFragment extends ListFragment { 
 	
@@ -19,12 +20,17 @@ public class TableFragment extends ListFragment {
 		populateTable();
 	}	
 	
+	public void onHiddenChanged(boolean b){
+		super.onHiddenChanged(b);
+		Toast.makeText(this.getActivity(), "table is showing", Toast.LENGTH_LONG).show();
+	}
+	
 	private void populateTable() {
 		// Connect to the database where the samples are stored
 		SampleDatabaseHelper db = new SampleDatabaseHelper(getActivity()
 				.getBaseContext());
 
-		Cursor cursor = db.getStudyDetails(MainActivity.currentStudy);
+		Cursor cursor = db.getStudyDetails(MainActivity.sCurrentStudy);
 		
 		//getActivity().getSupportLoaderManager();
 		//.startManagingCursor(cursor);
