@@ -6,13 +6,14 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import west.sample.bas.SamplePoint.SampleType;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+import android.util.Log;
 
 /**
  * Based on developer.android.com/training/basics/data-storage/databases.html
@@ -144,26 +145,58 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 		String result = ""; 
 		Cursor cursor = mDatabase.rawQuery("SELECT * FROM "+SampleInfo.TABLE_NAME, null);
 		while(cursor.moveToNext()){
-			String commentString = cursor.getString(7);
+			String commentString = cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_COMMENT));
 			if(commentString==null) commentString = "[No comments]";
-			result += cursor.getString(1)+","+	// study
-					  cursor.getInt(2)+","+ 	// number
-					  cursor.getString(3)+","+ 	// type	
-					  cursor.getFloat(4)+","+	// x
-					  cursor.getFloat(5)+","+	// y
-					  cursor.getString(6)+","+	// status
-					  commentString+","+		// comment
-					  cursor.getString(8)+"\n"; // timestamp
+			result += SampleInfo._ID+":"+cursor.getInt(cursor.getColumnIndex(SampleInfo._ID))+","+
+					SampleInfo.COLUMN_NAME_STUDY+":"+cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STUDY))+","+
+					SampleInfo.COLUMN_NAME_NUMBER+":"+cursor.getInt(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_NUMBER))+","+
+					SampleInfo.COLUMN_NAME_TYPE+":"+cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_TYPE))+","+
+					SampleInfo.COLUMN_NAME_X+":"+cursor.getFloat(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_X))+","+
+					SampleInfo.COLUMN_NAME_Y+":"+cursor.getFloat(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_Y))+","+
+					SampleInfo.COLUMN_NAME_STATUS+":"+cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STATUS))+","+
+					SampleInfo.COLUMN_NAME_COMMENT+":"+commentString+","+
+					SampleInfo.COLUMN_NAME_TIMESTAMP+":"+cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_TIMESTAMP))+"\n";
 		}
+		cursor.close();
 		return result; 
 	}
 
-//    public boolean updateStudent(int id, String name, String standard) {
-//        ContentValues args = new ContentValues();
-//        args.put(KEY_NAME, name);
-//        args.put(KEY_GRADE, standard);
-//        return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + id, null) > 0;
-//    }
-    
+	// returns 0 if successful
+	public int makeSample(String studyName) {
+		Log.d("database",prettyPrint());
+		
+		String innerQuery = "SELECT "+SampleInfo._ID+" FROM "+SampleInfo.TABLE_NAME+
+				" WHERE "+SampleInfo.COLUMN_NAME_STATUS+"='"+
+				SamplePoint.Status.OVERSAMPLE.toString()+"'"+
+				" AND "+SampleInfo.COLUMN_NAME_STUDY+"='"+studyName+"'";
+		String query = "SELECT MIN("+SampleInfo._ID+") AS "+SampleInfo._ID+" FROM ("+innerQuery+")";
+		Cursor cursor = mDatabase.rawQuery(innerQuery, null);
+		for(String s : convertCursorToStrings(innerQuery, SampleInfo._ID)){
+			Log.d("cursor",s);
+		}
+		if(cursor.getCount()==0){
+			cursor.close();
+			return UpdateTask.INSUFFICIENT_SAMPLES_ERROR;
+		}
+		cursor.moveToFirst();
+		int id = cursor.getInt(cursor.getColumnIndex(SampleInfo._ID));	
+		cursor.close();
+		ContentValues values = new ContentValues();
+		values.put(SampleInfo.COLUMN_NAME_STATUS, SamplePoint.Status.SAMPLE.toString());
+		return update(values,id);
+	}
+
+	public int update(ContentValues values, int mSampleID) {
+		Log.d("database",prettyPrint());
+		values.put(SampleInfo.COLUMN_NAME_TIMESTAMP, format.format(new Date(System.currentTimeMillis())));	
+		try{
+			getWritableDatabase().update(SampleInfo.TABLE_NAME, values, 
+					"_ID='"+mSampleID+"'",null);
+		}catch(SQLiteException e){
+			Log.d("database","Error getting writable database for update");
+			return UpdateTask.UPDATE_ERROR;
+		}
+		return UpdateTask.SUCCESS;
+	}
 
 }

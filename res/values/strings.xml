@@ -25,6 +25,12 @@
 	<string name="label_create">Generate BAS</string>
 	<string name="label_studyAreaFilename">No study area identified</string>
 	
+	<string name="label_rejected">Rejected</string>
+	<string name="label_reject">Reject</string>
+	<string name="label_collected">Collected</string>
+	<string name="label_collect">Collect</string>
+	<string name="label_comment">Comments</string>
+	
     <!-- Button labels -->
     <string name="label_new">Create new sample</string>
     <string name="label_fileBrowser">Browse</string>

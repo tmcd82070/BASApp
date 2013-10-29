@@ -1,7 +1,9 @@
 package west.sample.bas;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+//import java.util.Iterator;
 import java.util.Random;
 
 import west.sample.bas.SamplePoint.SampleType;
@@ -9,13 +11,30 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
+
+
+//// from gt-data
+//import org.geotools.data.FeatureSource;
+//import org.geotools.data.FileDataStore;
+//import org.geotools.data.FileDataStoreFinder;
+//import org.geotools.data.simple.SimpleFeatureIterator;
+//import org.geotools.feature.FeatureCollection;
+//import org.opengis.feature.simple.SimpleFeature;
+//import org.opengis.feature.simple.SimpleFeatureType;
+//import org.opengis.feature.type.FeatureType;
+
+
 public class GenerateSample extends AsyncTask<Void, Void, Integer> { 
 	
-	/** Constant to indicate the type of error is related to file I/O */
-	public static final int GENERATE_SAMPLE_FILEIO_ERROR = -1;
+	/** Constant to indicate that the type of error is related to reading the study area file */
+	public static final int READ_STUDY_AREA_ERROR = -1;
+//	public static final int READ_SHAPEFILE_ERROR = -1;
 	
-	/** Constant to indicate the type of error is database related */
-	public static final int GENERATE_SAMPLE_DATABASE_ERROR = -2;
+	/** Constant to indicate that the type of error is related to file I/O */
+	public static final int GENERATE_SAMPLE_FILEIO_ERROR = -2;
+	
+	/** Constant to indicate that the type of error is database related */
+	public static final int GENERATE_SAMPLE_DATABASE_ERROR = -3;
 	
 	/** A random number generator to seed the random-start Halton sequences */
 	private static Random sRand;
@@ -42,6 +61,8 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 	
 	/** Base used in generating the Halton sequence for the Y coordinate */
 	private static final int sBaseY = 3; 
+	
+//	FeatureSource<SimpleFeatureType, SimpleFeature> featureSource;
 	
 	private StudyArea mStudyArea;
 	private int mNumberSamples; 
@@ -160,6 +181,11 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 	 */
 	@Override
 	protected Integer doInBackground(Void... params) {
+		
+//		if(!readStudyAreaShapefile()) return READ_SHAPEFILE_ERROR;
+		
+		if(!readStudyArea());
+		
 		SampleType sampleType = SampleType.SAMPLE;
 		int rejectedCount = 0;
 		
@@ -201,6 +227,59 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 		return rejectedCount;
 	} 
 	
+	private boolean readStudyArea(){
+		File studyAreaFile = new File(mStudyAreaFilename);
+		//TODO actually read a file
+		if(!studyAreaFile.exists()) return true;
+		
+		return true;
+	}
+	
+	
+//	private boolean readStudyAreaShapefile() {
+//		File studyAreaSHP = new File(mStudyAreaFilename);
+//		if(!studyAreaSHP.exists()) return false;
+//		if(mStudyAreaFilename.endsWith(".shp")){
+//			FileDataStore store;
+//			try {
+//				store = FileDataStoreFinder.getDataStore(studyAreaSHP);
+//			} catch (IOException e) {
+//				Log.d("ReadSHP",e.getMessage());
+//				return false;
+//			}
+//			
+//			try {
+//				featureSource = store.getFeatureSource();
+//				return true;
+//			} catch (IOException e) {
+//				Log.d("ReadSHP",e.getMessage());
+//				return false;
+//			}
+//		}else{
+//			// TODO options for kml?  other?
+//		}
+//		
+//		try {
+//			FeatureCollection<SimpleFeatureType, SimpleFeature> fc = featureSource.getFeatures();
+//			FeatureType type = fc.getSchema();
+//			SimpleFeatureIterator iter = (SimpleFeatureIterator) fc.features();
+//			try {
+//		        while( iter.hasNext() ){
+//		            SimpleFeature feature = iter.next();
+//		            // process feature
+//		            Log.d("ReadSHP",feature.toString());
+//		        }
+//		    }
+//		    finally {
+//		        iter.close();
+//		    }
+//		} catch (IOException e) {
+//			Log.d("ReadSHP",e.getMessage());
+//			return false;
+//		}
+//		return false;
+//	}
+
 	@Override
 	public void onPostExecute(Integer i){
 		if(i<0){

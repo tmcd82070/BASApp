@@ -13,17 +13,17 @@
         android:color="#ffff3333"/>
 
     <!-- All others should have state_sample==T and state_rejected==F -->
-    <!-- Sample needs to be collected (dark green) -->
+    <!-- Sample needs to be collected (light green) -->
     <item bas:state_collected="false"
         bas:state_sample="true"
         bas:state_rejected="false"
-        android:color="#ff006600"/>
+        android:color="#ff33ff33"/>
     
     <!-- Lase one has sample = T, rejected = F, collected = T -->
-    <!-- Sample has been collected (light green) -->
+    <!-- Sample has been collected (dark green) -->
     <item bas:state_collected="true"
         bas:state_sample="true"
         bas:state_rejected="false"
-        android:color="#ff33ff33"/>
+        android:color="#ff006600"/>
     
 </selector>

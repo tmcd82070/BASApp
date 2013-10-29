@@ -225,7 +225,7 @@ public class MainActivity extends FragmentActivity {
 			public void onClick(View v) {
 				displayToast("Implement the file browser");
 				filenameLabel.setTextColor(black);
-				filenameTxt.setText("Selected!");
+				filenameTxt.setText("polygon.shp");
 			}
 		});
 		
@@ -416,7 +416,8 @@ public class MainActivity extends FragmentActivity {
 			SampleDatabaseHelper db = new SampleDatabaseHelper(getBaseContext());
 			Cursor cursor = db.getStudyDetails(mCurrentStudy);
 			DetailListAdapter adapter = (DetailListAdapter) myList.getAdapter();
-			adapter.changeCursor(cursor);
+			//TODO difference between change cursor and swap cursor
+			adapter.swapCursor(cursor);
 			//TODO figure out how to get all of them to update
 			myList.invalidate();
 			isStudySet = true;

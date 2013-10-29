@@ -24,6 +24,7 @@ public class DetailListAdapter extends SimpleCursorAdapter{
 		ColoredTextView statusTxt = (ColoredTextView) view.findViewById(R.id.text_status);
 		String status = cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STATUS));
 		statusTxt.setState(Status.getValueFromString(status));
+		statusTxt.invalidate();
 		
 		double x = cursor.getDouble(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_X));
 		double y = cursor.getDouble(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_Y));

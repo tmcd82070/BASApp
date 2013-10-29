@@ -22,7 +22,7 @@ public class SamplePoint {
 		SAMPLE,OVERSAMPLE;
 
 		public String getString() {
-			return this.toString().toLowerCase(Locale.US);
+			return this.toString();
 		}
 	}
 	
@@ -50,10 +50,10 @@ public class SamplePoint {
 		}
 
 		public static Status getValueFromString(String status) {
-			if(status.equals("sample")) return SAMPLE;
-			if(status.equals("oversample")) return OVERSAMPLE;
-			if(status.equals("reject")) return REJECT;
-			if(status.equals("collected")) return COLLECTED;
+			if(status.equalsIgnoreCase("sample")) return SAMPLE;
+			if(status.equalsIgnoreCase("oversample")) return OVERSAMPLE;
+			if(status.equalsIgnoreCase("reject")) return REJECT;
+			if(status.equalsIgnoreCase("collected")) return COLLECTED;
 			return null;
 		}
 	}	
