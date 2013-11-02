@@ -170,10 +170,7 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 				SamplePoint.Status.OVERSAMPLE.toString()+"'"+
 				" AND "+SampleInfo.COLUMN_NAME_STUDY+"='"+studyName+"'";
 		String query = "SELECT MIN("+SampleInfo._ID+") AS "+SampleInfo._ID+" FROM ("+innerQuery+")";
-		Cursor cursor = mDatabase.rawQuery(innerQuery, null);
-		for(String s : convertCursorToStrings(innerQuery, SampleInfo._ID)){
-			Log.d("cursor",s);
-		}
+		Cursor cursor = mDatabase.rawQuery(query, null);
 		if(cursor.getCount()==0){
 			cursor.close();
 			return UpdateTask.INSUFFICIENT_SAMPLES_ERROR;

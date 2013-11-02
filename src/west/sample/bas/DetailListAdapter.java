@@ -7,6 +7,8 @@ import android.database.Cursor;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
 import android.view.View;
+import android.view.View.OnAttachStateChangeListener;
+import android.view.ViewGroup;
 
 public class DetailListAdapter extends SimpleCursorAdapter{
 	
@@ -20,16 +22,21 @@ public class DetailListAdapter extends SimpleCursorAdapter{
 	@Override
 	public void bindView(View view, Context c, Cursor cursor) {
 		super.bindView(view, c, cursor);
-		
-		ColoredTextView statusTxt = (ColoredTextView) view.findViewById(R.id.text_status);
-		String status = cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STATUS));
-		statusTxt.setState(Status.getValueFromString(status));
-		statusTxt.invalidate();
-		
 		double x = cursor.getDouble(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_X));
 		double y = cursor.getDouble(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_Y));
 		Log.d("details","determine if the user is close to the point: "+x+","+y+" (gps "+gpsX+","+gpsY+")");
 //		if(x<1) view.setBackgroundColor(view.getResources().getColor(R.color.near_me));
+	}
+	
+	public View getView(int position, View convertView, ViewGroup parent){
+		View view = super.getView(position, convertView, parent);
+		
+		Cursor cursor = (Cursor) getItem(position);
+		ColoredTextView statusTxt = (ColoredTextView) view.findViewById(R.id.text_status);
+		String status = cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STATUS));
+		statusTxt.setState(Status.getValueFromString(status));
+		statusTxt.refreshDrawableState();
+		return view;
 	}
 
 	public void setCurrentLocation(double x, double y){
