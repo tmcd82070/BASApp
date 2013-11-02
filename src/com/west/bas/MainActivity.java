@@ -158,6 +158,9 @@ public class MainActivity extends FragmentActivity {
 		final int highlight = getResources().getColor(R.color.highlight);
 		final int warning = getResources().getColor(R.color.warning);
 		
+		SampleDatabaseHelper db = new SampleDatabaseHelper(getBaseContext());
+		final ArrayList<String> studyList = db.getListOfStudies();
+				
 		LayoutInflater inflater = (LayoutInflater) getSystemService("layout_inflater");
 		View layout = inflater.inflate(R.layout.dialog_create,
 				(ViewGroup) findViewById(R.layout.activity_main));
@@ -183,8 +186,9 @@ public class MainActivity extends FragmentActivity {
 		studyNameTxt.setOnFocusChangeListener(new OnFocusChangeListener(){
 			@Override
 			public void onFocusChange(View v, boolean hasFocus) {
-				// possibly autocomplete (and change the "create" button to a "load" button?
-				Log.d("study name","Check if the study name already exists");
+				if(!studyList.contains(studyNameTxt.getText().toString())){
+					studyNameLabel.setTextColor(black);
+				}
 			}});
 		
 		numberSamplesTxt.setOnFocusChangeListener(new OnFocusChangeListener(){
@@ -265,7 +269,12 @@ public class MainActivity extends FragmentActivity {
 							studyNameLabel.setTextColor(highlight);
 							isValid = false;	
 						}else{
-							if(!studyName.equals(studyNameTxt.getText().toString())){
+							if(studyList.contains(studyName)){
+								displayToast("Study "+studyName+" already exists.  Load existing BAS or select a unique name.");
+								displayedToast=true;
+								studyNameLabel.setTextColor(highlight);
+								isValid = false;	
+							}else if(!studyName.equals(studyNameTxt.getText().toString())){
 								studyNameTxt.setText(studyName);
 								studyNameLabel.setTextColor(warning);
 								displayToast("Revised study name to contain only\nalpha-numeric characters and underscore");
