@@ -1,6 +1,7 @@
-package west.sample.bas;
+package com.west.bas;
 
-import west.sample.bas.SampleDatabaseHelper.SampleInfo;
+import com.west.bas.SampleDatabaseHelper.SampleInfo;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.os.AsyncTask;

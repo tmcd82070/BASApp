@@ -1,9 +1,11 @@
-package west.sample.bas;
+package com.west.bas;
 
-import west.sample.bas.SamplePoint.Status;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.TextView;
+
+import com.west.bas.R;
+import com.west.bas.SamplePoint.Status;
 
 public class ColoredTextView extends TextView {
 

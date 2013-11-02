@@ -1,4 +1,4 @@
-package west.sample.bas;
+package com.west.bas;
 
 public abstract class RefreshCallback {
 	public abstract void onTaskComplete();

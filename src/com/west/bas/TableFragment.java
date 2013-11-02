@@ -1,7 +1,5 @@
-package west.sample.bas;
+package com.west.bas;
 
-import west.sample.bas.SampleDatabaseHelper.SampleInfo;
-import west.sample.bas.SamplePoint.Status;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.database.Cursor;
@@ -17,6 +15,10 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+
+import com.west.bas.R;
+import com.west.bas.SampleDatabaseHelper.SampleInfo;
+import com.west.bas.SamplePoint.Status;
 
 public class TableFragment extends ListFragment { 
 	

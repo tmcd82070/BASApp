@@ -1,7 +1,6 @@
-package west.sample.bas;
+package com.west.bas;
 
 import java.util.ArrayList;
-
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.app.AlertDialog;
@@ -28,6 +27,7 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.west.bas.R;
 
 public class MainActivity extends FragmentActivity {
 

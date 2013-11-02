@@ -1,4 +1,4 @@
-package west.sample.bas;
+package com.west.bas;
 
 import java.util.Locale;
 

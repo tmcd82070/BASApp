@@ -1,4 +1,4 @@
-package west.sample.bas;
+package com.west.bas;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,7 +6,8 @@ import java.util.ArrayList;
 //import java.util.Iterator;
 import java.util.Random;
 
-import west.sample.bas.SamplePoint.SampleType;
+import com.west.bas.SamplePoint.SampleType;
+
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;

@@ -1,11 +1,12 @@
-package west.sample.bas;
+package com.west.bas;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import west.sample.bas.SamplePoint.SampleType;
+import com.west.bas.SamplePoint.SampleType;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
