@@ -1,43 +1,20 @@
+/** Webpage for GeoTools download: http://sourceforge.net/projects/geotools/files/GeoTools%2010%20Releases/10.1/
+ * And another maps on android project: http://sourceforge.net/p/javashapefilere/code/HEAD/tree/
+ */
+
 package com.west.bas;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-//import java.util.Iterator;
 import java.util.Random;
-
-import com.west.bas.SamplePoint.SampleType;
 
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-
-
-// from gt-data
-import org.geotools.data.FeatureSource;
-import org.geotools.data.FileDataStore;
-import org.geotools.data.FileDataStoreFinder;
-import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.feature.FeatureCollection;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.FeatureType;
-
+import com.west.bas.SamplePoint.SampleType;
 
 public class GenerateSample extends AsyncTask<Void, Void, Integer> { 
 	
-	/** Constant to indicate that the type of error is related to reading the study area file */
-	public static final int READ_STUDY_AREA_ERROR = -1;
-	
-	/** Constant to indicate that the type of error is related to file I/O */
-	public static final int GENERATE_SAMPLE_FILEIO_ERROR = -2;
-	
-	/** Constant to indicate that the type of error is database related */
-	public static final int GENERATE_SAMPLE_DATABASE_ERROR = -3;
-	
-	public static final int READ_SHAPEFILE_ERROR = -4;
-
 	/** A random number generator to seed the random-start Halton sequences */
 	private static Random sRand;
 	/** Upper bound on the random seed */
@@ -64,13 +41,11 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 	/** Base used in generating the Halton sequence for the Y coordinate */
 	private static final int sBaseY = 3; 
 	
-	FeatureSource<SimpleFeatureType, SimpleFeature> featureSource;
+//	FeatureSource<SimpleFeatureType, SimpleFeature> featureSource;
 	
 	private StudyArea mStudyArea;
 	private int mNumberSamples; 
 	private int mNumberOversamples;
-	private String mStudyAreaFilename;
-	private String mStudyName; 
 	
 	private RefreshCallback callback;
 
@@ -79,14 +54,13 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 	 * negative values for the numbers of (over)samples indicate that the value was not set
 	 * @param c
 	 * @param studyName
-	 * @param studyAreaFilename
+	 * @param studyArea
 	 * @param nSample
 	 * @param nOversample
 	 * @param refreshCallback 
 	 */
-	public GenerateSample(Context c, String studyName, String studyAreaFilename, int nSample, int nOversample, RefreshCallback refreshCallback) {
-		mStudyAreaFilename = studyAreaFilename;
-		mStudyName = studyName;
+	public GenerateSample(Context c, StudyArea studyArea, int nSample, int nOversample, RefreshCallback refreshCallback) {
+		mStudyArea = studyArea;
 		
 		callback = refreshCallback;
 		
@@ -184,26 +158,18 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 	@Override
 	protected Integer doInBackground(Void... params) {
 		
-		if(!readStudyAreaShapefile()) return READ_SHAPEFILE_ERROR;
-		
-		if(!readStudyArea());
-		
 		SampleType sampleType = SampleType.SAMPLE;
 		int rejectedCount = 0;
-		
-		// Read in the study area definition (shapefile)
-		try{
-			mStudyArea = new StudyArea("NEED TO READ SHAPEFILE", mStudyName);
-		}catch(IOException e){
-			return GENERATE_SAMPLE_FILEIO_ERROR;
-		}
-		Log.d("generate","need to read in the file: "+mStudyAreaFilename);
 		
 		// Get ready to generate samples
 		// Initialize the seed buffers (storage space and values)
 		// The number of points should reflect both the size of the 
 		// sample and the likelihood that a point would like outside
 		// the study area.
+		if(mStudyArea==null){
+			Log.d("Generate","study area is null");
+			return -1;
+		}
 		int nPoints = mStudyArea.estimateNumPointsNeeded(mNumberSamples + mNumberOversamples);
 		mInputX = initSeedBuffer(nPoints, sBaseX);
 		mInputY = initSeedBuffer(nPoints, sBaseY);
@@ -218,9 +184,9 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 			}else{
 				// if the point is in the study area, add it to the database
 				// use a 1-up counter (for display to users)
-				if(-1==mDbHelper.addValue(mStudyName,i+1,sampleType,coords[0],coords[1])){
+				if(-1==mDbHelper.addValue(mStudyArea.getName(),mStudyArea.getFilename(),i+1,sampleType,coords[0],coords[1])){
 					Log.d("DBentry","Failed to insert row in the database");
-					return GENERATE_SAMPLE_DATABASE_ERROR;
+					return -1;
 				}
 				if(i==mNumberSamples-1) sampleType = SampleType.OVERSAMPLE;
 			}
@@ -228,59 +194,6 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 		//Log.d("generate", dbHelper.prettyPrint()); 
 		return rejectedCount;
 	} 
-	
-	private boolean readStudyArea(){
-		File studyAreaFile = new File(mStudyAreaFilename);
-		//TODO actually read a file
-		if(!studyAreaFile.exists()) return true;
-		
-		return true;
-	}
-	
-	
-	private boolean readStudyAreaShapefile() {
-		File studyAreaSHP = new File(mStudyAreaFilename);
-		if(!studyAreaSHP.exists()) return false;
-		if(mStudyAreaFilename.endsWith(".shp")){
-			FileDataStore store;
-			try {
-				store = FileDataStoreFinder.getDataStore(studyAreaSHP);
-			} catch (IOException e) {
-				Log.d("ReadSHP",e.getMessage());
-				return false;
-			}
-			
-			try {
-				featureSource = store.getFeatureSource();
-				return true;
-			} catch (IOException e) {
-				Log.d("ReadSHP",e.getMessage());
-				return false;
-			}
-		}else{
-			// TODO options for kml?  other?
-		}
-		
-		try {
-			FeatureCollection<SimpleFeatureType, SimpleFeature> fc = featureSource.getFeatures();
-			FeatureType type = fc.getSchema();
-			SimpleFeatureIterator iter = (SimpleFeatureIterator) fc.features();
-			try {
-		        while( iter.hasNext() ){
-		            SimpleFeature feature = iter.next();
-		            // process feature
-		            Log.d("ReadSHP",feature.toString());
-		        }
-		    }
-		    finally {
-		        iter.close();
-		    }
-		} catch (IOException e) {
-			Log.d("ReadSHP",e.getMessage());
-			return false;
-		}
-		return false;
-	}
 
 	@Override
 	public void onPostExecute(Integer i){

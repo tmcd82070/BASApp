@@ -1,17 +1,22 @@
 package com.west.bas;
 
+import java.io.File;
 import java.util.ArrayList;
+
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.app.AlertDialog;
 import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.database.Cursor;
+import android.graphics.Point;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,6 +32,9 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.west.bas.R;
 
 public class MainActivity extends FragmentActivity {
@@ -36,8 +44,9 @@ public class MainActivity extends FragmentActivity {
 	protected ViewPager mViewPager;
 	protected ActionBar mActionBar;
 
-	protected String mCurrentStudy;
-
+	protected String mCurrentStudyName;
+	protected StudyArea mCurrentStudy;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -47,7 +56,7 @@ public class MainActivity extends FragmentActivity {
 		// restore previous state
 		if (savedInstanceState != null) {
 			int currentTab = savedInstanceState.getInt("tab", 0);
-			mCurrentStudy = savedInstanceState.getString("study");
+			mCurrentStudyName = savedInstanceState.getString("study");
 			mActionBar.setSelectedNavigationItem(currentTab);
 			mViewPager.setCurrentItem(currentTab);
 		} else {
@@ -121,7 +130,7 @@ public class MainActivity extends FragmentActivity {
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		outState.putInt("tab", getActionBar().getSelectedNavigationIndex());
-		outState.putString("study", mCurrentStudy);
+		outState.putString("study", mCurrentStudyName);
 	}
 
 	@Override
@@ -254,8 +263,8 @@ public class MainActivity extends FragmentActivity {
 					public void onClick(View v) {
 						// check the values
 						String studyName = getCleanString(studyNameTxt);
-						int nSamples = getInt(numberSamplesTxt);
-						int nOversamples = getInt(numberOversamplesTxt);
+						final int nSamples = getInt(numberSamplesTxt);
+						final int nOversamples = getInt(numberOversamplesTxt);
 						String studyAreaFilename = filenameTxt.getText().toString();
 						
 						boolean isValid = true;
@@ -320,20 +329,34 @@ public class MainActivity extends FragmentActivity {
 						}
 						
 						if(isValid){
-							mCurrentStudy = studyName;
-							GenerateSample g = new GenerateSample(getBaseContext(),
-									studyName,studyAreaFilename,nSamples,nOversamples,
-									new RefreshCallback(){
-										@Override
-										public void onTaskComplete() {
-											refreshMainDisplays();
-										}});
-							g.execute();
+							mCurrentStudyName = studyName;
+							
+							File extDir = Environment.getExternalStorageDirectory();
+							File fileDir = getBaseContext().getFilesDir();
+							
+							ReadStudyArea reader = new ReadStudyArea(fileDir+"/"+studyAreaFilename,studyName, new ReadFileCallback(){
+								@Override
+								public void onTaskComplete(StudyArea studyArea) {
+									generateSamplesForStudyArea(studyArea,nSamples,nOversamples);
+								}});
+							reader.execute();
 							dialog.dismiss();
 						}
 					}});
 	}
 
+	protected void generateSamplesForStudyArea(StudyArea studyArea, int nSamples, int nOversamples){
+		mCurrentStudy = studyArea;
+		GenerateSample g = new GenerateSample(getBaseContext(),
+				mCurrentStudy,nSamples,nOversamples,
+				new RefreshCallback(){
+					@Override
+					public void onTaskComplete() {
+						refreshMainDisplays();
+					}});
+		g.execute();	
+	}
+	
 	protected int getInt(EditText textField) {
 		String s = textField.getText().toString();
 		// checks for length, but not for character types
@@ -390,7 +413,7 @@ public class MainActivity extends FragmentActivity {
 				public void onClick(DialogInterface dialog, int which) {
 					Object selected = spinner.getSelectedItem();
 					if (selected instanceof String) {
-						mCurrentStudy = (String) spinner.getSelectedItem();
+						mCurrentStudyName = (String) spinner.getSelectedItem();
 						// refresh the display to reflect the change
 						refreshMainDisplays();
 					} else {
@@ -413,25 +436,51 @@ public class MainActivity extends FragmentActivity {
 	}
 
 	private void refreshMainDisplays(){
-		displayToast("Refresh the map");
-		
-		boolean isStudySet = false;
-		
-		// refresh the map
-		
-		// refresh the table
-		ListView myList = (ListView) this.getWindow().findViewById(android.R.id.list);
-		if(myList!=null){
+		if(mCurrentStudyName!=null && !mCurrentStudyName.isEmpty()){
 			SampleDatabaseHelper db = new SampleDatabaseHelper(getBaseContext());
-			Cursor cursor = db.getStudyDetails(mCurrentStudy);
-			DetailListAdapter adapter = (DetailListAdapter) myList.getAdapter();
-			//TODO difference between change cursor and swap cursor
-			adapter.swapCursor(cursor);
-			//TODO figure out how to get all of them to update
-			myList.invalidate();
-			isStudySet = true;
+			
+			if(mCurrentStudy==null){
+				ReadStudyArea reader = new ReadStudyArea(db.getSHPFilename(mCurrentStudyName),mCurrentStudyName, new ReadFileCallback(){
+					@Override
+					public void onTaskComplete(StudyArea studyArea) {
+						mCurrentStudy = studyArea;
+						if(mCurrentStudy==null){
+							displayToast("Error loading a study: "+mCurrentStudyName);
+						}else{
+							refreshMainDisplays();
+						}
+					}});
+				reader.execute();
+				return;
+			}
+			
+			Cursor cursor = db.getStudyDetails(mCurrentStudyName);
+		
+			int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getBaseContext());
+//			if(status==ConnectionResult.SUCCESS){
+//				this.getWindow().findViewById(R.id.map);
+//				displayToast("Refresh the Google map");
+//			}else{
+				// refresh the map
+				MapView mapView = (MapView) this.getWindow().findViewById(R.id.mapView_drawMap);
+				
+				Display display = getWindowManager().getDefaultDisplay();
+				Point dim = new Point();
+				display.getSize(dim);
+				
+				mapView.initView(cursor,dim.x,dim.y, mCurrentStudy.getBoundingBox());
+				mapView.invalidate();
+//			}
+		
+			// refresh the table
+			ListView myList = (ListView) this.getWindow().findViewById(android.R.id.list);
+			if(myList!=null){
+				DetailListAdapter adapter = (DetailListAdapter) myList.getAdapter();
+				//TODO difference between change cursor and swap cursor
+				adapter.swapCursor(cursor);
+			}
+			setTitle("Sample: "+mCurrentStudyName);
 		}
-		if(isStudySet) setTitle("Sample: "+mCurrentStudy);
 	}
 	
 	private void displayToast(String message) {

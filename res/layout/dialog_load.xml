@@ -8,17 +8,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".CreateActivity" >
 
-    <TextView
-        android:id="@+id/textView_labelSampleName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginLeft="15dp"
-        android:layout_marginTop="10dp"
-        android:text="@string/label_sampleName"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-
     <Spinner
         android:id="@+id/spinner_sampleNames"
         android:layout_width="wrap_content"
@@ -26,5 +15,15 @@
         android:layout_alignLeft="@+id/textView_labelSampleName"
         android:layout_below="@+id/textView_labelSampleName"
         android:layout_marginLeft="18dp" />
+
+    <TextView
+        android:id="@+id/textView_labelSampleName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="26dp"
+        android:text="@string/label_sampleName"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
 
 </RelativeLayout>

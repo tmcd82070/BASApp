@@ -25,7 +25,8 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 	// V1: initial implementation
 	// V2: updated to include timestamp when creating an entry
 	// V3: created a field to indicate which study each point is associated with
-	public static final int DATABASE_VERSION = 3;
+	// V4: added a field to store the name of the shapefile
+	public static final int DATABASE_VERSION = 4;
 	public static final String DATABASE_NAME = "BAS.db";
 	
 	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
@@ -40,7 +41,8 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 		public static final String COLUMN_NAME_Y = "y";
 		public static final String COLUMN_NAME_STATUS = "status";
 		public static final String COLUMN_NAME_COMMENT = "comment";
-		public static final String COLUMN_NAME_TIMESTAMP = "timestamp";		
+		public static final String COLUMN_NAME_TIMESTAMP = "timestamp";
+		public static final String COLUMN_NAME_FILE = "shp_file";
 	}
 
 	/** Data types in the sample data **/
@@ -57,6 +59,7 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 			"CREATE TABLE "+SampleInfo.TABLE_NAME + " ("+
 			SampleInfo._ID 					+ DATA_INT 			+ " PRIMARY KEY AUTOINCREMENT,"+
 			SampleInfo.COLUMN_NAME_STUDY 	+ DATA_TEXT 		+ REQUIRED + "," + 
+			SampleInfo.COLUMN_NAME_FILE 	+ DATA_TEXT 		+ REQUIRED + "," + 
 			SampleInfo.COLUMN_NAME_NUMBER 	+ DATA_INT 			+ REQUIRED + "," + 
 			SampleInfo.COLUMN_NAME_TYPE 	+ DATA_ENUM_TYPE 	+ REQUIRED + "," + 
 			SampleInfo.COLUMN_NAME_X 		+ DATA_FLOAT 		+ REQUIRED + "," + 
@@ -102,9 +105,10 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 	 * @param y y coordinate of the point
 	 * @return primary key value (_ID) of the new row
 	 */
-	public long addValue(String study, int number, SampleType type, double x, double y){
+	public long addValue(String study, String filename, int number, SampleType type, double x, double y){
 		ContentValues data = new ContentValues();
 		data.put(SampleInfo.COLUMN_NAME_STUDY, study);
+		data.put(SampleInfo.COLUMN_NAME_FILE, filename);
 		data.put(SampleInfo.COLUMN_NAME_NUMBER, number);
 		data.put(SampleInfo.COLUMN_NAME_TYPE, type.getString());
 		data.put(SampleInfo.COLUMN_NAME_X, x);
@@ -129,6 +133,23 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 		return mDatabase.rawQuery(query, null);
 	}
 	
+	public String getSHPFilename(String studyName) {
+		if(studyName==null) return null;
+		String query = "SELECT "+SampleInfo.COLUMN_NAME_FILE+" FROM "+SampleInfo.TABLE_NAME+
+				" WHERE "+SampleInfo.COLUMN_NAME_STUDY+"='"+studyName+"'";
+		Cursor cursor = mDatabase.rawQuery(query, null);
+		if(cursor.getCount()>0){
+			cursor.moveToFirst();
+			int columnIndex = cursor.getColumnIndex(SampleInfo.COLUMN_NAME_FILE);
+			return cursor.getString(columnIndex);
+		}else{
+			Log.d("Database","No results from query: "+query);
+			return null;
+		}
+	}
+
+
+	
 	private ArrayList<String> convertCursorToStrings(String query, String columnName){
 		Cursor cursor = mDatabase.rawQuery(query, null);
 		int numRows = cursor.getCount();
@@ -150,6 +171,7 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 			if(commentString==null) commentString = "[No comments]";
 			result += SampleInfo._ID+":"+cursor.getInt(cursor.getColumnIndex(SampleInfo._ID))+","+
 					SampleInfo.COLUMN_NAME_STUDY+":"+cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STUDY))+","+
+					SampleInfo.COLUMN_NAME_FILE+":"+cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_FILE))+","+
 					SampleInfo.COLUMN_NAME_NUMBER+":"+cursor.getInt(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_NUMBER))+","+
 					SampleInfo.COLUMN_NAME_TYPE+":"+cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_TYPE))+","+
 					SampleInfo.COLUMN_NAME_X+":"+cursor.getFloat(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_X))+","+

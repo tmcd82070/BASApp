@@ -1,5 +1,7 @@
 package com.west.bas;
 
+import android.graphics.Point;
+
 public class BoundingBox { 
 	
 	private float mMinX; 
@@ -64,6 +66,41 @@ public class BoundingBox {
 	 */
 	public float getArea() { 
 		return mWidth * mHeight; 
-	} 
+	}
+
+	public ScreenOffset scaleToFit(int w, int h){
+		int offsetX = 0;
+		int offsetY = 0;
+		float scale = w/mWidth;
+		if(mHeight*scale>h){
+			scale = h/mHeight;
+			offsetX=(int) ((w-mWidth*scale)/2);
+		}else{
+			offsetY=(int) ((h-mHeight*scale)/2);
+		}
+		
+		return new ScreenOffset(scale,offsetX,offsetY);
+	}
 	
+	public class ScreenOffset{
+		int offsetX;
+		int offsetY;
+		float scale;
+
+		public ScreenOffset(float s, int x, int y) {
+			scale = s;
+			offsetX = x;
+			offsetY = y;
+		}
+		
+		public Point transformToScreen(Point p){
+			p.set((int)(p.x*scale), (int)(p.y*scale));
+			p.offset(offsetX, offsetY);
+			return p;
+		}
+
+		public int adjustPointSize(int size) {
+			return (int) (size*scale);
+		}
+	}
 }

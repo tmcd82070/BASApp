@@ -49,4 +49,10 @@
     <color name="highlight">#AA2222</color>
     <color name="near_me">#FFFF33</color>
     <color name="warning">#CCCC00</color>
+    
+    <color name="collected">#ff33ff33</color>
+    <color name="rejected">#ffff3333</color>
+    <color name="oversample">#ff404040</color>
+    <color name="sample">#ff006600</color>
+    
 </resources>
