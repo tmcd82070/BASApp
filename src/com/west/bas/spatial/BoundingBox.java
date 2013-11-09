@@ -1,4 +1,4 @@
-package com.west.bas;
+package com.west.bas.spatial;
 
 import android.graphics.Point;
 import android.graphics.Rect;

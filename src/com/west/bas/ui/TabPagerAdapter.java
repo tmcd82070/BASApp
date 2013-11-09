@@ -1,4 +1,4 @@
-package com.west.bas;
+package com.west.bas.ui;
 
 import android.support.v4.app.*; 
 import android.util.Log; 

@@ -2,7 +2,7 @@
  * And another maps on android project: http://sourceforge.net/p/javashapefilere/code/HEAD/tree/
  */
 
-package com.west.bas;
+package com.west.bas.sample;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -11,7 +11,11 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.west.bas.SamplePoint.SampleType;
+import com.west.bas.database.SampleDatabaseHelper;
+import com.west.bas.spatial.SamplePoint;
+import com.west.bas.spatial.StudyArea;
+import com.west.bas.spatial.SamplePoint.SampleType;
+import com.west.bas.ui.RefreshCallback;
 
 public class GenerateSample extends AsyncTask<Void, Void, Integer> { 
 	

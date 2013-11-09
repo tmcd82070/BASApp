@@ -32,6 +32,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.west.bas.database.SampleDatabaseHelper;
+import com.west.bas.sample.GenerateSample;
+import com.west.bas.spatial.StudyArea;
+import com.west.bas.ui.DetailListAdapter;
+import com.west.bas.ui.MapView;
+import com.west.bas.ui.ReadFileCallback;
+import com.west.bas.ui.RefreshCallback;
+import com.west.bas.ui.TabPagerAdapter;
 
 public class MainActivity extends FragmentActivity {
 
@@ -330,7 +338,7 @@ public class MainActivity extends FragmentActivity {
 							File extDir = Environment.getExternalStorageDirectory();
 							File fileDir = getBaseContext().getFilesDir();
 							
-							ReadStudyArea reader = new ReadStudyArea(fileDir+"/"+studyAreaFilename,studyName, new ReadFileCallback(){
+							ReadStudyAreaTask reader = new ReadStudyAreaTask(fileDir+"/"+studyAreaFilename,studyName, new ReadFileCallback(){
 								@Override
 								public void onTaskComplete(StudyArea studyArea) {
 									if(studyArea.isValid()){
@@ -440,7 +448,7 @@ public class MainActivity extends FragmentActivity {
 			SampleDatabaseHelper db = new SampleDatabaseHelper(getBaseContext());
 			
 			if(mCurrentStudy==null){
-				ReadStudyArea reader = new ReadStudyArea(db.getSHPFilename(mCurrentStudyName),mCurrentStudyName, new ReadFileCallback(){
+				ReadStudyAreaTask reader = new ReadStudyAreaTask(db.getSHPFilename(mCurrentStudyName),mCurrentStudyName, new ReadFileCallback(){
 					@Override
 					public void onTaskComplete(StudyArea studyArea) {
 						mCurrentStudy = studyArea;

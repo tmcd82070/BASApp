@@ -1,4 +1,4 @@
-package com.west.bas;
+package com.west.bas.ui;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -9,8 +9,10 @@ import android.view.View.OnAttachStateChangeListener;
 import android.view.ViewGroup;
 
 import com.west.bas.R;
-import com.west.bas.SampleDatabaseHelper.SampleInfo;
-import com.west.bas.SamplePoint.Status;
+import com.west.bas.R.id;
+import com.west.bas.database.SampleDatabaseHelper.SampleInfo;
+import com.west.bas.spatial.SamplePoint;
+import com.west.bas.spatial.SamplePoint.Status;
 
 public class DetailListAdapter extends SimpleCursorAdapter{
 	

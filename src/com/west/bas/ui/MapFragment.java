@@ -1,4 +1,4 @@
-package com.west.bas;
+package com.west.bas.ui;
 
 import android.os.Bundle; 
 import android.support.v4.app.Fragment; 
@@ -10,6 +10,8 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.west.bas.R;
+import com.west.bas.R.id;
+import com.west.bas.R.layout;
 public class MapFragment extends Fragment { 
 	public View onCreateView(LayoutInflater inflater, ViewGroup viewGroup, Bundle savedInstanceState) { 
 

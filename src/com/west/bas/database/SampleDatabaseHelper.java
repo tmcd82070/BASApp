@@ -1,11 +1,14 @@
-package com.west.bas;
+package com.west.bas.database;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import com.west.bas.SamplePoint.SampleType;
+import com.west.bas.UpdateTask;
+import com.west.bas.spatial.SamplePoint;
+import com.west.bas.spatial.SamplePoint.SampleType;
+import com.west.bas.spatial.SamplePoint.Status;
 
 import android.content.ContentValues;
 import android.content.Context;

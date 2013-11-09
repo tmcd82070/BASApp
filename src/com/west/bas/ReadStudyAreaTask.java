@@ -2,15 +2,18 @@ package com.west.bas;
 
 import java.io.File;
 
+import com.west.bas.spatial.StudyArea;
+import com.west.bas.ui.ReadFileCallback;
+
 import android.os.AsyncTask;
 
-public class ReadStudyArea extends AsyncTask<Void, Void, StudyArea> {
+public class ReadStudyAreaTask extends AsyncTask<Void, Void, StudyArea> {
 
 	private String mFilename;
 	private String mStudyName;
 	private ReadFileCallback mCallback;
 	
-	public ReadStudyArea(String filename, String studyName, ReadFileCallback callback){
+	public ReadStudyAreaTask(String filename, String studyName, ReadFileCallback callback){
 		mFilename = filename;
 		mStudyName = studyName;
 		mCallback = callback;

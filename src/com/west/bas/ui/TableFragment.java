@@ -1,4 +1,4 @@
-package com.west.bas;
+package com.west.bas.ui;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -17,8 +17,13 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.west.bas.R;
-import com.west.bas.SampleDatabaseHelper.SampleInfo;
-import com.west.bas.SamplePoint.Status;
+import com.west.bas.UpdateTask;
+import com.west.bas.R.id;
+import com.west.bas.R.layout;
+import com.west.bas.database.SampleDatabaseHelper;
+import com.west.bas.database.SampleDatabaseHelper.SampleInfo;
+import com.west.bas.spatial.SamplePoint;
+import com.west.bas.spatial.SamplePoint.Status;
 
 public class TableFragment extends ListFragment { 
 	

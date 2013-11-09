@@ -1,4 +1,4 @@
-package com.west.bas;
+package com.west.bas.ui;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -11,9 +11,13 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
-import com.west.bas.BoundingBox.ScreenOffset;
-import com.west.bas.SampleDatabaseHelper.SampleInfo;
-import com.west.bas.SamplePoint.Status;
+import com.west.bas.R;
+import com.west.bas.R.color;
+import com.west.bas.database.SampleDatabaseHelper.SampleInfo;
+import com.west.bas.spatial.BoundingBox;
+import com.west.bas.spatial.SamplePoint;
+import com.west.bas.spatial.BoundingBox.ScreenOffset;
+import com.west.bas.spatial.SamplePoint.Status;
 
 public class MapView extends View {
 

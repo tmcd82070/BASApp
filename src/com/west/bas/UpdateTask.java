@@ -1,6 +1,9 @@
 package com.west.bas;
 
-import com.west.bas.SampleDatabaseHelper.SampleInfo;
+import com.west.bas.database.SampleDatabaseHelper;
+import com.west.bas.database.SampleDatabaseHelper.SampleInfo;
+import com.west.bas.spatial.SamplePoint;
+import com.west.bas.ui.RefreshCallback;
 
 import android.content.ContentValues;
 import android.content.Context;
