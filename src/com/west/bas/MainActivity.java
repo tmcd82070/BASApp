@@ -9,14 +9,12 @@ import android.app.AlertDialog;
 import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.database.Cursor;
-import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.util.Log;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,9 +31,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.west.bas.R;
 
 public class MainActivity extends FragmentActivity {
 
@@ -337,7 +333,11 @@ public class MainActivity extends FragmentActivity {
 							ReadStudyArea reader = new ReadStudyArea(fileDir+"/"+studyAreaFilename,studyName, new ReadFileCallback(){
 								@Override
 								public void onTaskComplete(StudyArea studyArea) {
-									generateSamplesForStudyArea(studyArea,nSamples,nOversamples);
+									if(studyArea.isValid()){
+										generateSamplesForStudyArea(studyArea,nSamples,nOversamples);
+									}else{
+										displayToast(studyArea.getFailMessage());
+									}
 								}});
 							reader.execute();
 							dialog.dismiss();
@@ -464,11 +464,7 @@ public class MainActivity extends FragmentActivity {
 				// refresh the map
 				MapView mapView = (MapView) this.getWindow().findViewById(R.id.mapView_drawMap);
 				
-				Display display = getWindowManager().getDefaultDisplay();
-				Point dim = new Point();
-				display.getSize(dim);
-				
-				mapView.initView(cursor,dim.x,dim.y, mCurrentStudy.getBoundingBox());
+				mapView.initView(cursor,mapView.getWidth(),mapView.getHeight(), mCurrentStudy.getBoundingBox());
 				mapView.invalidate();
 //			}
 		

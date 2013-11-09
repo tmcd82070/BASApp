@@ -1,9 +1,12 @@
 package com.west.bas;
 
+import java.io.File;
+
 public class StudyArea {
 
 	private String mStudyName;
 	private String mFilename;
+	private String mFail;
 	
 	//TODO determine area from shapefile
 	private float mAreaOfStudy = 10;
@@ -11,12 +14,23 @@ public class StudyArea {
 	//TODO get the bounding box from the data!
 	private BoundingBox mBB = new BoundingBox(0,0,5,5);
 	
+	public StudyArea(String failMessage){
+		mFail = failMessage;
+	}
+	
 	// TODO accept a spataial data type and a name (rather than two strings)
-	public StudyArea(String shapefileName, String studyName){
+	public StudyArea(File studyAreaSHP, String shapefileName, String studyName){
 		mFilename = shapefileName;
 		mStudyName = studyName;
+		
+		// TODO try to read the shapefile
+		// studyAreaSHP
+		// if failure: set fail message
 	}
 
+	public boolean isValid(){ return mFail==null; }
+	public String getFailMessage(){ return mFail; }
+	
 	public String getName(){ return mStudyName; }
 	
 	public String getFilename() { return mFilename; }

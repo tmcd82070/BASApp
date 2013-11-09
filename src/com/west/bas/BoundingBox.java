@@ -1,6 +1,9 @@
 package com.west.bas;
 
 import android.graphics.Point;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.util.Log;
 
 public class BoundingBox { 
 	
@@ -69,16 +72,20 @@ public class BoundingBox {
 	}
 
 	public ScreenOffset scaleToFit(int w, int h){
-		int offsetX = 0;
-		int offsetY = 0;
 		float scale = w/mWidth;
 		if(mHeight*scale>h){
-			scale = h/mHeight;
-			offsetX=(int) ((w-mWidth*scale)/2);
-		}else{
-			offsetY=(int) ((h-mHeight*scale)/2);
+			scale = (float) (h/mHeight);
 		}
+		scale*=0.9;
 		
+		int offsetX= (int) ((w-mWidth*scale)/2);
+		int offsetY= (int) ((h-mHeight*scale)/2);
+		
+		Log.d("scale","window width: "+w+", height: "+h);
+		Log.d("scale","bounding box: "+mWidth+", "+mHeight);
+		Log.d("scale","scale: "+scale);
+		Log.d("scale","scaled box: "+mWidth*scale+", "+mHeight*scale);
+		Log.d("scale","offset: "+offsetX+", "+offsetY);
 		return new ScreenOffset(scale,offsetX,offsetY);
 	}
 	
@@ -93,14 +100,36 @@ public class BoundingBox {
 			offsetY = y;
 		}
 		
-		public Point transformToScreen(Point p){
-			p.set((int)(p.x*scale), (int)(p.y*scale));
-			p.offset(offsetX, offsetY);
+		public Point transformToScreen(float ptX, float ptY) {
+			Point p = new Point();
+			p.set(scaleToScreenX(ptX), scaleToScreenY(ptY));
 			return p;
 		}
-
-		public int adjustPointSize(int size) {
-			return (int) (size*scale);
+		
+		public int scaleToScreen(float f, int offset){
+			return (int)(f*scale+offset);
 		}
+
+		public int scaleToScreenX(float x) {
+			return scaleToScreen(x,offsetX);
+		}
+		
+		public int scaleToScreenY(float y){
+			return scaleToScreen(y,offsetY);
+		}
+	}
+
+	public Rect getBoundingRectangle(ScreenOffset scale) {
+		Rect bound = new Rect();
+		if(scale==null){
+			bound.set((int)mMinX,(int)mMinY,
+					(int)(mMinX+mWidth),(int)(mMinY+mHeight));
+		}else{
+			bound.set(scale.scaleToScreenX(mMinX), 
+					scale.scaleToScreenY(mMinY), 
+					scale.scaleToScreenX(mMinX+mWidth), 
+					scale.scaleToScreenY(mMinY+mHeight));
+		}
+		return bound;
 	}
 }
