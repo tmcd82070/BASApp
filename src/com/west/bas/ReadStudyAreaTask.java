@@ -24,15 +24,19 @@ public class ReadStudyAreaTask extends AsyncTask<Void, Void, StudyArea> {
 	protected StudyArea doInBackground(Void... params) {
 		
 		File studyAreaSHP = new File(mFilename);
-		if(studyAreaSHP.exists()){	
-			if(mFilename.endsWith(".shp")){
-				return new StudyArea(studyAreaSHP, mFilename, mStudyName);
-			}else{
-				return new StudyArea("Filename must indicate a shapefile (extension .shp)");
-			}
-		}else{
-			return new StudyArea("File doesn't exist on the device: "+mFilename);
-		}
+		
+		return new StudyArea(studyAreaSHP, mFilename, mStudyName);
+		
+		//TODO actually care about the file on the device
+//		if(studyAreaSHP.exists()){	
+//			if(mFilename.endsWith(".shp")){
+//				return new StudyArea(studyAreaSHP, mFilename, mStudyName);
+//			}else{
+//				return new StudyArea("Filename must indicate a shapefile (extension .shp)");
+//			}
+//		}else{
+//			return new StudyArea("File doesn't exist on the device: "+mFilename);
+//		}
 	}
 	
 	@Override

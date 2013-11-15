@@ -209,6 +209,7 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 		}else{
 			// TODO record the number of rejected points?
 			Log.d("generate", "Number of rejected points: "+i);
+			Log.d("generate", mDbHelper.prettyPrint());
 			if(callback!=null) callback.onTaskComplete();
 		}
 	}

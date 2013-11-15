@@ -31,12 +31,17 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.west.bas.database.SampleDatabaseHelper;
+import com.west.bas.database.SampleDatabaseHelper.SampleInfo;
 import com.west.bas.sample.GenerateSample;
 import com.west.bas.spatial.StudyArea;
 import com.west.bas.ui.DetailListAdapter;
-import com.west.bas.ui.MapView;
+import com.west.bas.ui.MapFragmentDual;
+import com.west.bas.ui.MapViewDraw;
 import com.west.bas.ui.ReadFileCallback;
 import com.west.bas.ui.RefreshCallback;
 import com.west.bas.ui.TabPagerAdapter;
@@ -44,7 +49,6 @@ import com.west.bas.ui.TabPagerAdapter;
 public class MainActivity extends FragmentActivity {
 
 	// Layout objects that facilitate interaction
-	protected TabPagerAdapter mTabAdapter;
 	protected ViewPager mViewPager;
 	protected ActionBar mActionBar;
 
@@ -59,13 +63,13 @@ public class MainActivity extends FragmentActivity {
 		
 		// restore previous state
 		if (savedInstanceState != null) {
-			int currentTab = savedInstanceState.getInt("tab", 0);
+			int currentTab = savedInstanceState.getInt("tab", TabPagerAdapter.MAP_ITEM);
 			mCurrentStudyName = savedInstanceState.getString("study");
 			mActionBar.setSelectedNavigationItem(currentTab);
 			mViewPager.setCurrentItem(currentTab);
 		} else {
-			mActionBar.setSelectedNavigationItem(0);
-			mViewPager.setCurrentItem(0);
+			mActionBar.setSelectedNavigationItem(TabPagerAdapter.MAP_ITEM);
+			mViewPager.setCurrentItem(TabPagerAdapter.MAP_ITEM);
 		}
 		
 		// refresh the two displays
@@ -78,7 +82,7 @@ public class MainActivity extends FragmentActivity {
 	 * gesture or by selecting the respective tabs. */
 	private void initInteraction(Bundle savedInstanceState) {
 		setContentView(R.layout.activity_main);
-		mTabAdapter = new TabPagerAdapter(getSupportFragmentManager());
+		TabPagerAdapter mTabAdapter = new TabPagerAdapter(getSupportFragmentManager());
 		mViewPager = (ViewPager) findViewById(R.id.pager_tabLayout);
 		mViewPager.setAdapter(mTabAdapter);
 		mViewPager.setOnPageChangeListener(new OnPageChangeListener() {
@@ -336,6 +340,7 @@ public class MainActivity extends FragmentActivity {
 							mCurrentStudyName = studyName;
 							
 							File extDir = Environment.getExternalStorageDirectory();
+							Log.d("mainActivity","external directory "+extDir.getAbsolutePath());
 							File fileDir = getBaseContext().getFilesDir();
 							
 							ReadStudyAreaTask reader = new ReadStudyAreaTask(fileDir+"/"+studyAreaFilename,studyName, new ReadFileCallback(){
@@ -447,6 +452,8 @@ public class MainActivity extends FragmentActivity {
 		if(mCurrentStudyName!=null && !mCurrentStudyName.isEmpty()){
 			SampleDatabaseHelper db = new SampleDatabaseHelper(getBaseContext());
 			
+			// Determine whether or not the study has been retrieved from the database
+			// if not, read in the study details (then try again)
 			if(mCurrentStudy==null){
 				ReadStudyAreaTask reader = new ReadStudyAreaTask(db.getSHPFilename(mCurrentStudyName),mCurrentStudyName, new ReadFileCallback(){
 					@Override
@@ -462,27 +469,53 @@ public class MainActivity extends FragmentActivity {
 				return;
 			}
 			
+			// If the study has already been read in, display its contents in the map and table
 			Cursor cursor = db.getStudyDetails(mCurrentStudyName);
 		
-			int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getBaseContext());
-//			if(status==ConnectionResult.SUCCESS){
-//				this.getWindow().findViewById(R.id.map);
-//				displayToast("Refresh the Google map");
-//			}else{
+			// If the map is a GoogleMap, place markers at each sample location
+			// Otherwise, draw points on a simple canvas
+			MapFragmentDual mapFragment = (MapFragmentDual) ((TabPagerAdapter) mViewPager.getAdapter()).getItem(TabPagerAdapter.MAP_ITEM);
+			if(mapFragment.isGoogleMap()){
+				GoogleMap map = mapFragment.getGoogleMap();
+				if(map!=null){
+//					GoogleMap map = mapFragment.getMap();
+					map.moveCamera(CameraUpdateFactory.newLatLng(db.getStudyCenter(mCurrentStudyName)));
+					// draw the study area bounds on the map
+					
+					// draw the sample points on the map
+					cursor.moveToFirst();
+					while(!cursor.isAfterLast()){
+						float x = cursor.getFloat(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_X));
+						float y = cursor.getFloat(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_Y));
+						String typeLabel = cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STATUS));
+						String comment = cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_COMMENT));
+						MarkerOptions marker = new MarkerOptions().position(new LatLng(y, x))
+								.title(typeLabel)
+								.snippet(comment);
+						// TODO change color of icon based on type?
+						map.addMarker(marker);
+						Log.d("checkPoints","x: "+x+" y: "+y+", "+typeLabel);
+						cursor.moveToNext();
+					}
+					displayToast("Plotted sample points");
+				}else{
+					displayToast("Google map is null");
+				}
+			}else{
 				// refresh the map
-				MapView mapView = (MapView) this.getWindow().findViewById(R.id.mapView_drawMap);
+				MapViewDraw mapView = (MapViewDraw) this.getWindow().findViewById(R.id.mapView_drawMap);
 				
-				mapView.initView(cursor,mapView.getWidth(),mapView.getHeight(), mCurrentStudy.getBoundingBox());
+				mapView.initView(cursor,mapView.getWidth(),mapView.getHeight(), mCurrentStudy);
 				mapView.invalidate();
-//			}
-		
-			// refresh the table
-			ListView myList = (ListView) this.getWindow().findViewById(android.R.id.list);
-			if(myList!=null){
-				DetailListAdapter adapter = (DetailListAdapter) myList.getAdapter();
-				//TODO difference between change cursor and swap cursor
-				adapter.swapCursor(cursor);
 			}
+		
+		// refresh the table
+		ListView myList = (ListView) this.getWindow().findViewById(android.R.id.list);
+		if(myList!=null){
+			DetailListAdapter adapter = (DetailListAdapter) myList.getAdapter();
+			//TODO difference between change cursor and swap cursor
+			adapter.swapCursor(cursor);
+		}
 			setTitle("Sample: "+mCurrentStudyName);
 		}
 	}

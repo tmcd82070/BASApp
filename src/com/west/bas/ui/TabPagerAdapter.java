@@ -5,15 +5,19 @@ import android.util.Log;
 // Referenced classes of package west.bas: 
 // MapFragment, TableFragment 
 
+
 public class TabPagerAdapter extends FragmentPagerAdapter { 
+
+	public static final int MAP_ITEM = 0;
+
 	public TabPagerAdapter(FragmentManager fm) { 
 		super(fm); 
 	} 
 	
 	public Fragment getItem(int tabIndex) { 
 		switch(tabIndex) { 
-		case 0:  
-			return new MapFragment(); 
+		case MAP_ITEM:  
+			return new MapFragmentDual(); 
 		case 1:  
 			return new TableFragment(); 
 		} 

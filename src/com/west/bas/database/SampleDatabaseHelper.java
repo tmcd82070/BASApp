@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.west.bas.UpdateTask;
 import com.west.bas.spatial.SamplePoint;
 import com.west.bas.spatial.SamplePoint.SampleType;
@@ -136,6 +137,17 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 		return mDatabase.rawQuery(query, null);
 	}
 	
+	public LatLng getStudyCenter(String studyName) {
+		if(studyName==null) return null;
+		String query = "SELECT "+SampleInfo.COLUMN_NAME_FILE+" FROM "+SampleInfo.TABLE_NAME+
+				" WHERE "+SampleInfo.COLUMN_NAME_STUDY+"='"+studyName+"'";
+		
+		// TODO fix this! read from the study info table
+		float lat = 43;
+		float lng = -107.6F;
+		return new LatLng(lat, lng);
+	}
+
 	public String getSHPFilename(String studyName) {
 		if(studyName==null) return null;
 		String query = "SELECT "+SampleInfo.COLUMN_NAME_FILE+" FROM "+SampleInfo.TABLE_NAME+
