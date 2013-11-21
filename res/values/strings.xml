@@ -13,6 +13,8 @@
     <string name="display_number">[Sample Number]</string>
     <string name="display_status">[Status]</string>
     <string name="display_comments">[Comments]</string>
+    <string name="display_folder">[Folder name]</string>
+    <string name="display_file">[File name]</string>
     
     <!-- UI labels -->
 	<string name="label_map">Map</string>
@@ -24,7 +26,7 @@
 	<string name="label_oversampleSize">Oversample Size</string>
 	<string name="label_create">Generate BAS</string>
 	<string name="label_studyAreaFilename">No study area identified</string>
-	
+	<string name="label_studyAreaBrowser">Select file for study area:</string>
 	<string name="label_rejected">Rejected</string>
 	<string name="label_reject">Reject</string>
 	<string name="label_collected">Collected</string>
@@ -44,6 +46,7 @@
     
     <!-- Accessibility description -->
     <string name="describe_studyArea">Graphical display of study area boundary</string>
+    <string name="describe_folder">Folder</string>
     
     <!-- Colors to use in the display -->
     <color name="highlight">#AA2222</color>

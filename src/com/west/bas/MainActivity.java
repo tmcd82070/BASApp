@@ -10,7 +10,6 @@ import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
@@ -23,6 +22,8 @@ import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
 import android.view.WindowManager.LayoutParams;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -39,6 +40,7 @@ import com.west.bas.database.SampleDatabaseHelper;
 import com.west.bas.database.SampleDatabaseHelper.SampleInfo;
 import com.west.bas.sample.GenerateSample;
 import com.west.bas.spatial.StudyArea;
+import com.west.bas.ui.BrowserAdapter;
 import com.west.bas.ui.DetailListAdapter;
 import com.west.bas.ui.MapFragmentDual;
 import com.west.bas.ui.MapViewDraw;
@@ -178,7 +180,7 @@ public class MainActivity extends FragmentActivity {
 		SampleDatabaseHelper db = new SampleDatabaseHelper(getBaseContext());
 		final ArrayList<String> studyList = db.getListOfStudies();
 				
-		LayoutInflater inflater = (LayoutInflater) getSystemService("layout_inflater");
+		final LayoutInflater inflater = (LayoutInflater) getSystemService("layout_inflater");
 		View layout = inflater.inflate(R.layout.dialog_create,
 				(ViewGroup) findViewById(R.layout.activity_main));
 		final EditText studyNameTxt = (EditText) layout
@@ -198,7 +200,7 @@ public class MainActivity extends FragmentActivity {
 				.findViewById(R.id.textView_label_oversampleSize);
 		final TextView filenameTxt = (TextView) layout
 				.findViewById(R.id.textView_studyAreaFilename);
-
+		
 		// Notify the user if a study name already exists
 		studyNameTxt.setOnFocusChangeListener(new OnFocusChangeListener(){
 			@Override
@@ -242,17 +244,58 @@ public class MainActivity extends FragmentActivity {
 				.findViewById(R.id.button_fileBrowser);
 		fileBrowseBtn.setOnClickListener(new OnClickListener() {
 
+			AlertDialog browserDialog;
+			
 			@Override
 			public void onClick(View v) {
-				displayToast("Implement the file browser");
+				
 				filenameLabel.setTextColor(black);
-				filenameTxt.setText("polygon.shp");
+				
+				AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MainActivity.this);
+				View browserView = inflater.inflate(R.layout.dialog_browser,
+						(ViewGroup) findViewById(R.layout.activity_main));
+				ListView browser = (ListView) browserView.findViewById(R.id.listView_fileNames);
+				
+				browser.setOnItemClickListener(new OnItemClickListener(){
+					@Override
+					public void onItemClick(AdapterView<?> listView, View parentView,
+							int position, long positionL) {
+						String selectedString = (String) listView.getItemAtPosition(position);
+						File selectedFile = new File(selectedString);
+						if(selectedFile.isDirectory()){
+							((BrowserAdapter) listView.getAdapter()).descendToDir(selectedFile);
+						}else{
+							Log.d("browser","[MainActivity] Selected file: "+selectedString);
+							filenameTxt.setText(selectedString);
+							browserDialog.dismiss();
+						}
+					}});
+								
+				browser.setAdapter(new BrowserAdapter(MainActivity.this,
+						R.id.listView_fileNames,
+//						BrowserAdapter.getDirectoryList(Environment.getExternalStorageDirectory())));
+						BrowserAdapter.getDirectoryList(MainActivity.this.getFilesDir())));
+				builder.setView(browserView);
+				builder.setPositiveButton("Cancel", new DialogInterface.OnClickListener(){
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+					}});
+				builder.setCancelable(false);
+				//builder.setNegativeButton("negative", null);
+				browserDialog = builder.create();
+				browserDialog.show();
+				
+				//TODO use the same dialog but swap the layout?
+				
+				
 			}
 		});
 		
 		AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
 		builder.setView(layout);
 		builder.setPositiveButton("Create", null);
+		// TODO does leaving the listener null use the default and close without other actions?
 		builder.setNegativeButton("Cancel",
 				new DialogInterface.OnClickListener() {
 					@Override
@@ -339,11 +382,7 @@ public class MainActivity extends FragmentActivity {
 						if(isValid){
 							mCurrentStudyName = studyName;
 							
-							File extDir = Environment.getExternalStorageDirectory();
-							Log.d("mainActivity","external directory "+extDir.getAbsolutePath());
-							File fileDir = getBaseContext().getFilesDir();
-							
-							ReadStudyAreaTask reader = new ReadStudyAreaTask(fileDir+"/"+studyAreaFilename,studyName, new ReadFileCallback(){
+							ReadStudyAreaTask reader = new ReadStudyAreaTask(studyAreaFilename,studyName, new ReadFileCallback(){
 								@Override
 								public void onTaskComplete(StudyArea studyArea) {
 									if(studyArea.isValid()){
