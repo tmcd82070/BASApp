@@ -1,6 +1,5 @@
 package com.west.bas;
 
-import java.io.File;
 import java.util.ArrayList;
 
 import android.app.ActionBar;
@@ -18,18 +17,10 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
-import android.view.WindowManager.LayoutParams;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -40,7 +31,8 @@ import com.west.bas.database.SampleDatabaseHelper;
 import com.west.bas.database.SampleDatabaseHelper.SampleInfo;
 import com.west.bas.sample.GenerateSample;
 import com.west.bas.spatial.StudyArea;
-import com.west.bas.ui.BrowserAdapter;
+import com.west.bas.ui.CreateBASCallback;
+import com.west.bas.ui.CreateBASDialog;
 import com.west.bas.ui.DetailListAdapter;
 import com.west.bas.ui.MapFragmentDual;
 import com.west.bas.ui.MapViewDraw;
@@ -56,6 +48,12 @@ public class MainActivity extends FragmentActivity {
 
 	protected String mCurrentStudyName;
 	protected StudyArea mCurrentStudy;
+	
+	//TODO clean up on exit
+	protected void onPause(){
+		//http://stackoverflow.com/questions/18309958/activity-gets-crashed-with-fatal-signal-11-sigsegv-at-0x00000200-code-1
+	}
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -173,233 +171,44 @@ public class MainActivity extends FragmentActivity {
 	 * A recommendation is provided for the number of oversamples.
 	 */	
 	private void createBAS() {
-		final int black = getResources().getColor(android.R.color.black);
-		final int highlight = getResources().getColor(R.color.highlight);
-		final int warning = getResources().getColor(R.color.warning);
-		
-		SampleDatabaseHelper db = new SampleDatabaseHelper(getBaseContext());
-		final ArrayList<String> studyList = db.getListOfStudies();
-				
-		final LayoutInflater inflater = (LayoutInflater) getSystemService("layout_inflater");
-		View layout = inflater.inflate(R.layout.dialog_create,
-				(ViewGroup) findViewById(R.layout.activity_main));
-		final EditText studyNameTxt = (EditText) layout
-				.findViewById(R.id.editText_sampleName);
-		final EditText numberSamplesTxt = (EditText) layout
-				.findViewById(R.id.editText_sampleSize);
-		final EditText numberOversamplesTxt = (EditText) layout
-				.findViewById(R.id.editText_oversampleSize);
-
-		final TextView studyNameLabel = (TextView) layout
-				.findViewById(R.id.textView_labelSampleName);
-		final TextView filenameLabel = (TextView) layout
-				.findViewById(R.id.textView_labelStudyArea);
-		final TextView numberSamplesLabel = (TextView) layout
-				.findViewById(R.id.textView_labelSampleSize);
-		final TextView numberOversamplesLabel = (TextView) layout
-				.findViewById(R.id.textView_label_oversampleSize);
-		final TextView filenameTxt = (TextView) layout
-				.findViewById(R.id.textView_studyAreaFilename);
-		
-		// Notify the user if a study name already exists
-		studyNameTxt.setOnFocusChangeListener(new OnFocusChangeListener(){
-			@Override
-			public void onFocusChange(View v, boolean hasFocus) {
-				if(!studyList.contains(studyNameTxt.getText().toString())){
-					studyNameLabel.setTextColor(black);
-				}
-			}});
-		
-		numberSamplesTxt.setOnFocusChangeListener(new OnFocusChangeListener(){
-			@Override
-			public void onFocusChange(View v, boolean hasFocus) {
-				if(!hasFocus){
-					String raw = numberSamplesTxt.getText().toString();
-					if(raw.length()>0){
-						numberSamplesLabel.setTextColor(black);
-					}
-				}
-			}});
-		
-		// Provide a recommendation for the number of oversamples
-		numberOversamplesTxt
-				.setOnFocusChangeListener(new OnFocusChangeListener() {
+		AlertDialog dialog = CreateBASDialog.getCreateBASDialog(
+				this, 
+				new CreateBASCallback() {
 					@Override
-					public void onFocusChange(View v, boolean hasFocus) {
-						String text = numberSamplesTxt.getText().toString();
-						if (text.length() > 0) {
-							numberOversamplesTxt.setHint("Recommended: "
-									+ getInt(numberSamplesTxt)*2);
-						}
-						if(!hasFocus){
-							String raw = numberOversamplesTxt.getText().toString();
-							if(raw.length()>0){
-								numberOversamplesLabel.setTextColor(black);
-							}
-						} 
-					}
-				});
+					public void onTaskComplete(String studyName,
+							final int nSamples, 
+							final int nOversamples,
+							String studyAreaFilename) {
+						mCurrentStudyName = studyName;
 
-		Button fileBrowseBtn = (Button) layout
-				.findViewById(R.id.button_fileBrowser);
-		fileBrowseBtn.setOnClickListener(new OnClickListener() {
-
-			AlertDialog browserDialog;
-			
-			@Override
-			public void onClick(View v) {
-				
-				filenameLabel.setTextColor(black);
-				
-				AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MainActivity.this);
-				View browserView = inflater.inflate(R.layout.dialog_browser,
-						(ViewGroup) findViewById(R.layout.activity_main));
-				ListView browser = (ListView) browserView.findViewById(R.id.listView_fileNames);
-				
-				browser.setOnItemClickListener(new OnItemClickListener(){
-					@Override
-					public void onItemClick(AdapterView<?> listView, View parentView,
-							int position, long positionL) {
-						String selectedString = (String) listView.getItemAtPosition(position);
-						File selectedFile = new File(selectedString);
-						if(selectedFile.isDirectory()){
-							((BrowserAdapter) listView.getAdapter()).descendToDir(selectedFile);
-						}else{
-							Log.d("browser","[MainActivity] Selected file: "+selectedString);
-							filenameTxt.setText(selectedString);
-							browserDialog.dismiss();
-						}
-					}});
-								
-				browser.setAdapter(new BrowserAdapter(MainActivity.this,
-						R.id.listView_fileNames,
-//						BrowserAdapter.getDirectoryList(Environment.getExternalStorageDirectory())));
-						BrowserAdapter.getDirectoryList(MainActivity.this.getFilesDir())));
-				builder.setView(browserView);
-				builder.setPositiveButton("Cancel", new DialogInterface.OnClickListener(){
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						dialog.dismiss();
-					}});
-				builder.setCancelable(false);
-				//builder.setNegativeButton("negative", null);
-				browserDialog = builder.create();
-				browserDialog.show();
-				
-				//TODO use the same dialog but swap the layout?
-				
-				
-			}
-		});
-		
-		AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
-		builder.setView(layout);
-		builder.setPositiveButton("Create", null);
-		// TODO does leaving the listener null use the default and close without other actions?
-		builder.setNegativeButton("Cancel",
-				new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						dialog.dismiss();
-					}
-				});
-
-		final AlertDialog dialog = builder.create();
-		dialog.getWindow().setSoftInputMode(LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-		dialog.show();
-		dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(
-				new View.OnClickListener() {
-
-					@Override
-					public void onClick(View v) {
-						// check the values
-						String studyName = getCleanString(studyNameTxt);
-						final int nSamples = getInt(numberSamplesTxt);
-						final int nOversamples = getInt(numberOversamplesTxt);
-						String studyAreaFilename = filenameTxt.getText().toString();
-						
-						boolean isValid = true;
-						// Only display one toast per check
-						boolean displayedToast = false;
-						
-						// highlight missing values
-						if(studyName.isEmpty()){
-							displayToast("Empty study name or invalid characters");
-							displayedToast=true;
-							studyNameLabel.setTextColor(highlight);
-							isValid = false;	
-						}else{
-							if(studyList.contains(studyName)){
-								displayToast("Study "+studyName+" already exists.  Load existing BAS or select a unique name.");
-								displayedToast=true;
-								studyNameLabel.setTextColor(highlight);
-								isValid = false;	
-							}else if(!studyName.equals(studyNameTxt.getText().toString())){
-								studyNameTxt.setText(studyName);
-								studyNameLabel.setTextColor(warning);
-								displayToast("Revised study name to contain only\nalpha-numeric characters and underscore");
-								displayedToast = true;
-								isValid=false;
-							}else{
-								studyNameLabel.setTextColor(black);
-							}
-						}
-
-						if(nSamples<1){
-							if(!displayedToast){
-								displayToast("New studies must have at least one sample");
-								displayedToast = true;
-							}
-							numberSamplesLabel.setTextColor(highlight);
-							isValid = false;
-						}else{
-							numberSamplesLabel.setTextColor(black);
-						}
-						
-						if(nOversamples<0){
-							if(!displayedToast){
-								displayToast("A number of oversamples is required (may be zero)");
-								displayedToast = true;
-							}
-							numberOversamplesLabel.setTextColor(highlight);
-							isValid = false;
-						}else{
-							numberOversamplesLabel.setTextColor(black);
-						}
-						
-						if(studyAreaFilename == null || studyAreaFilename.isEmpty() ||
-								studyAreaFilename.equals(getResources().getString(R.string.label_studyAreaFilename))){
-							if(!displayedToast){
-								displayToast("A study area is required");
-								displayedToast = true;
-							}
-							filenameLabel.setTextColor(highlight);
-							isValid = false;
-						}else{
-							filenameLabel.setTextColor(black);
-						}
-						
-						if(isValid){
-							mCurrentStudyName = studyName;
-							
-							ReadStudyAreaTask reader = new ReadStudyAreaTask(studyAreaFilename,studyName, new ReadFileCallback(){
-								@Override
-								public void onTaskComplete(StudyArea studyArea) {
-									if(studyArea.isValid()){
-										generateSamplesForStudyArea(studyArea,nSamples,nOversamples);
-									}else{
-										displayToast(studyArea.getFailMessage());
+						ReadStudyAreaTask reader = new ReadStudyAreaTask(
+								studyAreaFilename, 
+								studyName,
+								new ReadFileCallback() {
+									@Override
+									public void onTaskComplete(
+											StudyArea studyArea) {
+										if (studyArea.isValid()) {
+											generateSamplesForStudyArea(
+													studyArea, nSamples,
+													nOversamples);
+										} else {
+											displayToast(studyArea
+													.getFailMessage());
+										}
 									}
-								}});
-							reader.execute();
-							dialog.dismiss();
-						}
-					}});
+								});
+						reader.execute();
+
+					}
+				});
+		
+		dialog.show();				
 	}
 
 	protected void generateSamplesForStudyArea(StudyArea studyArea, int nSamples, int nOversamples){
 		mCurrentStudy = studyArea;
-		GenerateSample g = new GenerateSample(getBaseContext(),
+		GenerateSample g = new GenerateSample(this,
 				mCurrentStudy,nSamples,nOversamples,
 				new RefreshCallback(){
 					@Override
@@ -409,27 +218,8 @@ public class MainActivity extends FragmentActivity {
 		g.execute();	
 	}
 	
-	protected int getInt(EditText textField) {
-		String s = textField.getText().toString();
-		// checks for length, but not for character types
-		// (EditText set as numeric in the xml; could use try/catch for more
-		// robust)
-		if (s.length() > 0)
-			return Integer.valueOf(s);
-		return -1;
-	}
 
-	/**
-	 * Given an input field return a string that contains
-	 * only alpha-numeric characters and underscore
-	 * @param textField UI field that contains the user input
-	 * @return cleaned string
-	 */
-	protected String getCleanString(EditText textField) {
-		String raw = textField.getText().toString();
-		raw = raw.replaceAll(" ","_");
-		return raw.replaceAll("[^a-zA-Z0-9_]", "");
-	}
+
 
 	/** Present a list of studies (as found in the database) to the user
 	 * for them to make a selection.  When selected, the display is refreshed.

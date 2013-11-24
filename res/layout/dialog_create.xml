@@ -8,6 +8,7 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".CreateActivity" >
 
+        
     <TextView
         android:id="@+id/textView_labelSampleName"
         android:layout_width="wrap_content"
@@ -17,7 +18,7 @@
         android:layout_marginLeft="15dp"
         android:layout_marginTop="10dp"
         android:text="@string/label_sampleName"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <EditText
         android:id="@+id/editText_sampleName"
@@ -39,7 +40,7 @@
         android:layout_below="@+id/editText_sampleName"
         android:layout_marginTop="15dp"
         android:text="@string/label_sampleSize"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <EditText
         android:id="@+id/editText_sampleSize"
@@ -49,8 +50,7 @@
         android:layout_below="@+id/textView_labelSampleSize"
         android:ems="10"
         android:hint="@string/hint_sampleSize"
-        android:inputType="number" >
-	</EditText>
+        android:inputType="number" />
 
     <TextView
         android:id="@+id/textView_label_oversampleSize"
@@ -60,7 +60,7 @@
         android:layout_below="@+id/editText_sampleSize"
         android:layout_marginTop="15dp"
         android:text="@string/label_oversampleSize"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <EditText
         android:id="@+id/editText_oversampleSize"
@@ -70,9 +70,7 @@
         android:layout_below="@+id/textView_label_oversampleSize"
         android:ems="10"
         android:hint="@string/hint_oversampleSize"
-        android:inputType="number" >
-
-    </EditText>
+        android:inputType="number" />
 
     <TextView
         android:id="@+id/textView_labelStudyArea"
@@ -80,27 +78,52 @@
         android:layout_height="wrap_content"
         android:layout_alignLeft="@id/textView_labelSampleName"
         android:layout_below="@+id/editText_oversampleSize"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="15dp"
         android:text="@string/label_studyArea"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <ToggleButton
+        android:id="@+id/toggleButton_SD"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/toggleButton_appFolder"
+        android:layout_alignRight="@+id/toggleButton_appFolder"
+        android:layout_below="@+id/toggleButton_appFolder"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:textOff="@string/label_SD"
+        android:textOn="@string/label_SD" />
 
     <TextView
         android:id="@+id/textView_studyAreaFilename"
-        android:layout_width="wrap_content"
+        android:layout_width="160dp"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@id/textView_labelSampleName"
+        android:layout_alignLeft="@+id/textView_labelStudyArea"
+        android:layout_alignRight="@+id/listView_fileNames"
         android:layout_below="@+id/textView_labelStudyArea"
-        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="18dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
         android:text="@string/label_studyAreaFilename"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
-    <Button
-        android:id="@+id/button_fileBrowser"
-        style="?android:attr/buttonStyleSmall"
+    <ToggleButton
+        android:id="@+id/toggleButton_appFolder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/textView_studyAreaFilename"
-        android:layout_alignRight="@+id/editText_oversampleSize"
-        android:text="@string/label_fileBrowser" />
-    
+        android:layout_alignLeft="@+id/textView_labelStudyArea"
+        android:layout_below="@+id/textView_studyAreaFilename"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:textOff="@string/label_appFolder"
+        android:textOn="@string/label_appFolder" />
+
+    <ListView
+        android:id="@+id/listView_fileNames"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/toggleButton_appFolder"
+        android:layout_toRightOf="@+id/toggleButton_SD" >
+    </ListView>
+
 </RelativeLayout>

@@ -96,8 +96,6 @@ public class BrowserAdapter extends ArrayAdapter<String> {
 		for(String s : getDirectoryList(mCurrentDirectory)){
 			add(s);
 		}
-		// TODO does this force an update? or is setting flag above sufficient?
-		//notifyDataSetChanged();
 	}
 	
 }

@@ -33,6 +33,9 @@
 	<string name="label_collect">Collect</string>
 	<string name="label_comment">Comments</string>
 	
+	<string name="label_SD">SD Card</string>
+	<string name="label_appFolder">BAS\nFolder</string>
+	
     <!-- Button labels -->
     <string name="label_new">Create new sample</string>
     <string name="label_fileBrowser">Browse</string>
