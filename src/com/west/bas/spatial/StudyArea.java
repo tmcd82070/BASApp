@@ -11,7 +11,13 @@ import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.util.Log;
-
+/**
+ * An object that holds all of the details of a study. Ultimately won't be
+ * necessary (all of that informatin can be queried from the database)
+ * <br/><br/>
+ * 
+ * West EcoSystems Technologies, Inc (2013)
+ */
 public class StudyArea {
 
 	private String mStudyName;

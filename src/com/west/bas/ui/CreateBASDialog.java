@@ -1,7 +1,7 @@
 package com.west.bas.ui;
 
-import java.io.File;
 import java.util.ArrayList;
+import java.util.Vector;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -21,12 +21,25 @@ import android.widget.ToggleButton;
 
 import com.west.bas.R;
 import com.west.bas.database.SampleDatabaseHelper;
+import com.west.bas.sample.GenerateSample;
 
+/**
+ * 
+ * A balanced acceptance sample is parameterized by the number of
+ * samples (and oversamples) and the extent of the study area.  The
+ * CreateBASDialog collects these parameters from the user.  The 
+ * values can then be sent to the GenerateSample method
+ * <br/><br/>
+ * 
+ * West EcoSystems Technologies, Inc (2013)
+ * 
+ * @see GenerateSample
+ */
 public class CreateBASDialog{
 
+	/** Recommendations for the number of oversamples is based on 
+	 * a scalar multiple of the number of samples. */
 	public static final int RATIO_OVERSAMPLES_TO_SAMPLES = 2;
-	
-	public static final String NO_FILES_WARNING = "[No files available]";
 	
 	private static int sBlack;
 	private static int sHighlight;
@@ -175,13 +188,11 @@ public class CreateBASDialog{
 		final ToggleButton sdCardBtn = 
 				(ToggleButton) layout.findViewById(R.id.toggleButton_SD);
 		
-		appFolderBtn.setChecked(true);
 		appFolderBtn.setOnClickListener(new View.OnClickListener(){
 			@Override
 			public void onClick(View v) {
 				BrowserAdapter adapter = (BrowserAdapter) browser.getAdapter();
 				adapter.ascendToRoot(false);
-				if(adapter.getCount()==0) adapter.add(NO_FILES_WARNING);
 				// always have one selected (with option to select multiple times)
 				appFolderBtn.setChecked(true);
 				sdCardBtn.setChecked(false);
@@ -191,7 +202,6 @@ public class CreateBASDialog{
 			public void onClick(View v) {
 				BrowserAdapter adapter = (BrowserAdapter) browser.getAdapter();
 				adapter.ascendToRoot(true);
-				if(adapter.getCount()==0) adapter.add(NO_FILES_WARNING);
 				// always have one selected (with option to select multiple times)
 				sdCardBtn.setChecked(true);
 				appFolderBtn.setChecked(false);
@@ -202,26 +212,23 @@ public class CreateBASDialog{
 			@Override
 			public void onItemClick(AdapterView<?> listView, View parentView,
 					int position, long positionL) {
-				String selectedString = 
-						(String) listView.getItemAtPosition(position);
-				if(!selectedString.equals(NO_FILES_WARNING)){
-					File selectedFile = new File(selectedString);
-					if(selectedFile.isDirectory()){
-						((BrowserAdapter) listView.getAdapter()).descendToDir(selectedFile);
-					}else{
-						filenameDisplay.setText(selectedString);
-						filenameLabel.setTextColor(sBlack);
-					}
+				String selectedString=(String) listView.getItemAtPosition(position);
+				boolean isFile = ((BrowserAdapter) listView.getAdapter()).handleSelection(selectedString);
+				if(isFile){
+					filenameDisplay.setText(selectedString);
+					filenameLabel.setTextColor(sBlack);
 				}
 			}});
 		
 		BrowserAdapter adapter = new BrowserAdapter(
 				context,
 				R.id.listView_fileNames,
-				BrowserAdapter.getDirectoryList(context.getFilesDir()));
-		if(adapter.getCount()==0) adapter.add(NO_FILES_WARNING);
+				new Vector<String>());
 		browser.setAdapter(adapter);
 		
+		// start in the application folder
+		appFolderBtn.setChecked(true);
+		adapter.ascendToRoot(false);
 		
 		// Verify any values entered: if valid, generate samples 
 		// (otherwise provide feedback to user about why invalid)

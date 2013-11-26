@@ -1,5 +1,5 @@
 package com.west.bas.ui;
 
 public abstract class RefreshCallback {
-	public abstract void onTaskComplete();
+	public abstract void onTaskComplete(String toastMessage);
 }

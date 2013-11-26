@@ -12,11 +12,23 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.west.bas.database.SampleDatabaseHelper;
-import com.west.bas.spatial.SamplePoint;
-import com.west.bas.spatial.StudyArea;
 import com.west.bas.spatial.SamplePoint.SampleType;
+import com.west.bas.spatial.StudyArea;
 import com.west.bas.ui.RefreshCallback;
 
+/**
+ * Generate points using the Balanced Acceptance Sampling technique
+ * described by Robertson, Brown, McDonald, and Jaksons (2013).
+ * <br/><br/>
+ * 
+ * <strong>Reference:</strong><br/>
+ * B. L. Robertson, J. A. Brown, T. McDonald, and P. Jaksons (2013) 
+ * <a href="http://onlinelibrary.wiley.com/doi/10.1111/biom.12059/abstract">BAS: Balanced Acceptance Sampling of Natural Resources</a>.  
+ * Biometrics, 69(3):776-784.
+ * <br/><br/>
+ * 
+ * West EcoSystems Technologies, Inc (2013)
+ */
 public class GenerateSample extends AsyncTask<Void, Void, Integer> { 
 	
 	/** A random number generator to seed the random-start Halton sequences */
@@ -210,7 +222,7 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 			// TODO record the number of rejected points?
 			Log.d("generate", "Number of rejected points: "+i);
 			Log.d("generate", mDbHelper.prettyPrint());
-			if(callback!=null) callback.onTaskComplete();
+			if(callback!=null) callback.onTaskComplete("Sample generated for "+mStudyArea.getName());
 		}
 	}
 }

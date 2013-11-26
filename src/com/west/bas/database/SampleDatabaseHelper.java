@@ -5,12 +5,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import com.google.android.gms.maps.model.LatLng;
-import com.west.bas.UpdateTask;
-import com.west.bas.spatial.SamplePoint;
-import com.west.bas.spatial.SamplePoint.SampleType;
-import com.west.bas.spatial.SamplePoint.Status;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -20,9 +14,21 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.west.bas.UpdateTask;
+import com.west.bas.spatial.SamplePoint;
+import com.west.bas.spatial.SamplePoint.SampleType;
+
+//TODO create a second table to hold the study information
+
 /**
- * Based on developer.android.com/training/basics/data-storage/databases.html
+ * Definition of the database tables and basic interaction.
+ * <br/><br/>
  * 
+ * Based on developer.android.com/training/basics/data-storage/databases.html
+ * <br/><br/>
+ * 
+ * West EcoSystems Technologies, Inc (2013)
  */
 public class SampleDatabaseHelper extends SQLiteOpenHelper {
 

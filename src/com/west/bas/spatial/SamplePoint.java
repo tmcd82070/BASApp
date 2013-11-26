@@ -1,12 +1,12 @@
 package com.west.bas.spatial;
 
-import java.util.Locale;
 
 /** The SamplePoint class encapsulates all of the information associated with 
  * a single sample point.
  * 
- * @author M. Brittell, October 2013
- *
+ * <br/><br/>
+ * 
+ * West EcoSystems Technologies, Inc (2013)
  */
 public class SamplePoint {
 

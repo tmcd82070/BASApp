@@ -8,22 +8,61 @@ import com.west.bas.ui.RefreshCallback;
 import android.content.ContentValues;
 import android.content.Context;
 import android.os.AsyncTask;
-import android.widget.Toast;
 
+/**
+ * This class was implemented as an AsyncTask because of the
+ * interaction with the database that could potential 
+ * delay other interaction with the UI.
+ * <br/><br/>
+ * 
+ * West EcoSystems Technologies, Inc (2013)
+ */
 public class UpdateTask  extends AsyncTask<Void, Void, Integer>{
 
+	/** Constant to indicate success when updating the database */
 	public static final int SUCCESS = 0;
+	
+	/** Constant to indicate that there was an error updating the database */
 	public static final int UPDATE_ERROR = -1;
+	
+	/** Constant to indicate that there were not enough samples to replace one that was rejected */
 	public static final int INSUFFICIENT_SAMPLES_ERROR = -2;
 	
+	/** Application context (used to identify and get a handle to the database) */
 	private Context mContext;
+	
+	/** Handle to the database helper class */
 	private SampleDatabaseHelper mDbHelper;
+	
+	/** A unique reference to the sample that is being updated */
 	private int mSampleID;
+	
+	/** The status to which the sample point should be updated */
 	private SamplePoint.Status mStatus;
+	
+	/** Comments to annotate the database modification (associated with
+	 * the sample that is being modified. */
 	private String mComment;
+	
+	/** A callback to request a display refresh on the UI thread */
 	private RefreshCallback mRefreshCallback;
+	
+	/** The name of the study to which the sample that is being 
+	 * updated belongs. */
 	private String mStudyName;
 	
+	//TODO reuse the UpdateTask by initializing with the study and then
+	// providing parameters to each call to execute.
+	/**
+	 * Each update is currently conducted with a separate UpdateTask
+	 * object.  The full details must be provided to initialize the task.
+	 * @param c application context
+	 * @param studyName name of the study that contains the sample to update
+	 * @param id unique id of the sample
+	 * @param status new status of the sample
+	 * @param comment narrative to annotate the update
+	 * @param refreshCallback callback to post a refresh on the UI thread
+	 */
 	public UpdateTask(Context c, String studyName, int id, 
 			SamplePoint.Status status, 
 			String comment, RefreshCallback refreshCallback){
@@ -53,8 +92,8 @@ public class UpdateTask  extends AsyncTask<Void, Void, Integer>{
 		}
 	}
 	
+	@Override
 	public void onPostExecute(Integer i){
-		int length = Toast.LENGTH_LONG;
 		String message = "";
 		switch(i){
 		case UPDATE_ERROR:
@@ -64,12 +103,10 @@ public class UpdateTask  extends AsyncTask<Void, Void, Integer>{
 			message = "ERROR: Insufficient number of oversamples to accommodate rejection";
 			break;
 		case SUCCESS:
-			length = Toast.LENGTH_SHORT;
-			message = "Success";
+			message = "Updated sample "+mSampleID;
 			break;
 		}
-		Toast.makeText(mContext, message, length).show();
-		mRefreshCallback.onTaskComplete();
+		mRefreshCallback.onTaskComplete(message);
 	}
 	
 
