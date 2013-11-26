@@ -6,13 +6,15 @@ import java.util.Vector;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
+import android.content.DialogInterface.OnShowListener;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -45,9 +47,11 @@ public class CreateBASDialog{
 	private static int sHighlight;
 	private static int sWarning;
 	
+	private static AlertDialog sDialog=null;
+	
 	// Disallow instantiation
 	private CreateBASDialog(){}
-			
+	
 	public static AlertDialog getCreateBASDialog(
 			Context context, 
 			CreateBASCallback callback){
@@ -59,31 +63,26 @@ public class CreateBASDialog{
 		// Inflate the layout from XML
 		LayoutInflater inflater = LayoutInflater.from(context);
 		View layout = inflater.inflate(R.layout.dialog_create, null);
-		OnClickListener checkFieldsOnClick = 
-				initLayoutWidgets(layout,context,callback);
+		final OnClickListener checkFieldsOnClick = initLayoutWidgets(layout,context,callback);
 		
 		AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
 		builder.setView(layout);
 		// let the default listener take care of closing the dialog
 		builder.setNegativeButton("Cancel",null);
-		builder.setPositiveButton("Load",
-				new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
+		builder.setPositiveButton("Create",null);
+		
+		sDialog = builder.create();
+		sDialog.setOnShowListener(new OnShowListener(){
 
-					}
-				});
-		
-		final AlertDialog dialog = builder.create();
-		// After the dialog has been created, set up a listener for
-		// the "Create" button that will check fields before proceeding
-		// (if is added in the builder, the default listener would 
-		// augments with a dismiss action)
-		dialog.setButton(AlertDialog.BUTTON_POSITIVE,"Create",checkFieldsOnClick);
-		
-		return dialog;
+			@Override
+			public void onShow(DialogInterface di) {
+				Button createBtn = sDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+				createBtn.setOnClickListener(checkFieldsOnClick);
+			}
+		});
+		return sDialog;
 	}
-	
+
 	
 	/** Initialize colors used to encode status in the graphical
 	 * user interface.  Colors are initialized only once.
@@ -234,7 +233,7 @@ public class CreateBASDialog{
 		// (otherwise provide feedback to user about why invalid)
 		OnClickListener checkFieldsOnClick = new OnClickListener() {
 			@Override
-			public void onClick(DialogInterface dialog, int which) {
+			public void onClick(View v) {
 				// check the values
 				String studyName = getCleanString(studyNameTxt);
 				final int nSamples = getInt(numberSamplesTxt);
@@ -322,9 +321,10 @@ public class CreateBASDialog{
 							nSamples, 			// number of samples
 							nOversamples, 		// number of over samples
 							studyAreaFilename); // absolute path to file containing study area
-					dialog.dismiss();
+					sDialog.dismiss();
 				}
 			}
+
 		};
 		return checkFieldsOnClick;
 	}

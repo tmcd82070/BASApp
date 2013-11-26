@@ -297,7 +297,7 @@ public class MainActivity extends FragmentActivity {
 					}
 				});
 		
-		dialog.show();				
+		dialog.show();		
 	}
 
 
