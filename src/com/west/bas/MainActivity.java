@@ -275,7 +275,9 @@ public class MainActivity extends FragmentActivity {
 									@Override
 									public void onTaskComplete(
 											StudyArea studyArea) {
-										if (studyArea.isValid()) {
+										if(studyArea==null){
+											displayToast("Error reading study area.");
+										}else if (studyArea.isValid()) {
 											mCurrentStudy = studyArea;
 											GenerateSample g = new GenerateSample(MainActivity.this,
 													mCurrentStudy,nSamples,nOversamples,new RefreshCallback(){

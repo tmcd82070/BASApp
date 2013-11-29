@@ -190,9 +190,10 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 		mInputX = initSeedBuffer(nPoints, sBaseX);
 		mInputY = initSeedBuffer(nPoints, sBaseY);
 
+		float[] coords = null;
 		// Generate samples
 		for(int i=0;i<(mNumberSamples+mNumberOversamples);i++){
-			float[] coords = mStudyArea.getSampleLocation(nextPoint());
+			coords = mStudyArea.getSampleLocation(nextPoint());
 			if(coords == null){
 				// if the point isn't within the study area, reject it now
 				rejectedCount++;
@@ -205,6 +206,7 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 					return -1;
 				}
 				if(i==mNumberSamples-1) sampleType = SampleType.OVERSAMPLE;
+				coords = null;
 			}
 		}
 		//Log.d("generate", dbHelper.prettyPrint()); 

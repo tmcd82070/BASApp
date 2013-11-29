@@ -5,8 +5,6 @@ import android.util.AttributeSet;
 import android.widget.TextView;
 
 import com.west.bas.R;
-import com.west.bas.R.attr;
-import com.west.bas.spatial.SamplePoint;
 import com.west.bas.spatial.SamplePoint.Status;
 
 public class ColoredTextView extends TextView {

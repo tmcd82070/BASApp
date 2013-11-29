@@ -1,11 +1,21 @@
 package com.west.bas;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
+
+import com.west.bas.spatial.KMLHandler;
 import com.west.bas.spatial.StudyArea;
 import com.west.bas.ui.ReadFileCallback;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 /** A class to read and parse a KML file to determine the 
  * extent of the study area.  Reading the file takes place
@@ -52,9 +62,25 @@ public class ReadStudyAreaTask extends AsyncTask<Void, Void, StudyArea> {
 		}
 		
 		// TODO parse the file to get the polygon points and style details
+		KMLHandler handler = new KMLHandler();
+		try {
+			System.setProperty("org.xml.sax.driver","org.xmlpull.v1.sax2.Driver");
+			XMLReader parser = XMLReaderFactory.createXMLReader();
+			parser.setContentHandler(handler);
+			InputSource input = new InputSource(new FileInputStream(studyAreaKML));
+			parser.parse(input);
+		} catch (SAXException e) {
+			Log.e("readSA",e.getMessage());
+			return new StudyArea(e.getMessage());
+		} catch (FileNotFoundException e) {
+			Log.e("readSA",e.getMessage());
+			return new StudyArea(e.getMessage());
+		} catch (IOException e) {
+			Log.e("readSA",e.getMessage());
+			return new StudyArea(e.getMessage());
+		}
 		
-		
-		return new StudyArea(studyAreaKML, mFilename, mStudyName);
+		return new StudyArea(mStudyName, mFilename, handler.getPolygon());
 	}
 	
 	@Override

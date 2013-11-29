@@ -7,7 +7,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Point;
-import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -67,7 +66,8 @@ public class MapViewDraw extends View {
 
 	public void onDraw(Canvas canvas){
 		if(studyArea!=null){
-			studyArea.draw(canvas,mBlack,mGrey);
+			//TODO update the drawing?
+			//studyArea.draw(canvas,mBlack,mGrey);
 		}
 		if(mPoints!=null){
 			for(int i=0;i<mPoints.length;i++){
@@ -82,7 +82,8 @@ public class MapViewDraw extends View {
 		mPoints = new Point[cursor.getCount()];
 		mColors = new Paint[cursor.getCount()];
 		
-		studyArea.scaleToFit(screenWidth,screenHeight);
+		// TODO handle scaling
+//		studyArea.scaleToFit(screenWidth,screenHeight);
 		
 		cursor.moveToFirst();
 		for(int i=0;i<mPoints.length && !cursor.isAfterLast();i++){
