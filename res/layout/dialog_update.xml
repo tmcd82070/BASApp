@@ -20,14 +20,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="20dp"
+            android:background="@drawable/togglebutton_custom"
             android:textOn="@string/label_collected" 
-            android:textOff="@string/label_collect"/>
+        	android:textOff="@string/label_collect"/>
 
         <ToggleButton
             android:id="@+id/toggleButton_reject"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
+        	android:background="@drawable/togglebutton_custom"
             android:textOn="@string/label_rejected"
             android:textOff="@string/label_reject" />
     </LinearLayout>
