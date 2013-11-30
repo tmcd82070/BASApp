@@ -1,4 +1,4 @@
-package com.west.bas;
+package com.west.bas.spatial;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,10 +9,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
-
-import com.west.bas.spatial.KMLHandler;
-import com.west.bas.spatial.StudyArea;
-import com.west.bas.ui.ReadFileCallback;
 
 import android.os.AsyncTask;
 import android.util.Log;
@@ -26,11 +22,11 @@ import android.util.Log;
  * 
  * West EcoSystems Technologies, Inc (2013)
  */
-public class ReadStudyAreaTask extends AsyncTask<Void, Void, StudyArea> {
+public class ReadStudyAreaAsyncTask extends AsyncTask<Void, Void, StudyArea> {
 
 	private String mFilename;
 	private String mStudyName;
-	private ReadFileCallback mCallback;
+	private ReadStudyAreaCallback mCallback;
 	
 	/**
 	 * The ReadStudyAreaTask needs the filename to read and from which
@@ -39,7 +35,7 @@ public class ReadStudyAreaTask extends AsyncTask<Void, Void, StudyArea> {
 	 * @param studyName name that labels this study
 	 * @param callback handle to a callback to use when processing is complete
 	 */
-	public ReadStudyAreaTask(String filename, String studyName, ReadFileCallback callback){
+	public ReadStudyAreaAsyncTask(String filename, String studyName, ReadStudyAreaCallback callback){
 		mFilename = filename;
 		mStudyName = studyName;
 		mCallback = callback;

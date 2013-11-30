@@ -73,7 +73,6 @@ public class CreateBASDialog{
 		
 		sDialog = builder.create();
 		sDialog.setOnShowListener(new OnShowListener(){
-
 			@Override
 			public void onShow(DialogInterface di) {
 				Button createBtn = sDialog.getButton(AlertDialog.BUTTON_POSITIVE);
@@ -235,7 +234,7 @@ public class CreateBASDialog{
 			@Override
 			public void onClick(View v) {
 				// check the values
-				String studyName = getCleanString(studyNameTxt);
+				String studyName = SampleDatabaseHelper.getCleanStudyNameString(studyNameTxt.getText().toString());
 				final int nSamples = getInt(numberSamplesTxt);
 				final int nOversamples = getInt(numberOversamplesTxt);
 				String studyAreaFilename = filenameDisplay.getText().toString();
@@ -348,18 +347,6 @@ public class CreateBASDialog{
 			}
 		}
 		return result;
-	}
-	
-	/**
-	 * Given an input field return a string that contains
-	 * only alpha-numeric characters and underscore
-	 * @param textField UI field that contains the user input
-	 * @return cleaned string
-	 */
-	protected static String getCleanString(EditText textField) {
-		String raw = textField.getText().toString();
-		raw = raw.replaceAll(" ","_");
-		return raw.replaceAll("[^a-zA-Z0-9_]", "");
 	}
 
 }

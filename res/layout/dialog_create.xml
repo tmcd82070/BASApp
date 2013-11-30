@@ -91,6 +91,7 @@
         android:layout_below="@+id/toggleButton_appFolder"
         android:paddingTop="12dp"
         android:paddingBottom="12dp"
+        android:background="@drawable/togglebutton_custom"
         android:textOff="@string/label_SD"
         android:textOn="@string/label_SD" />
 
@@ -111,10 +112,11 @@
         android:id="@+id/toggleButton_appFolder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView_labelStudyArea"
-        android:layout_below="@+id/textView_studyAreaFilename"
-        android:paddingTop="12dp"
+        android:layout_alignLeft="@id/textView_labelStudyArea"
+        android:layout_below="@id/textView_studyAreaFilename"
         android:paddingBottom="12dp"
+        android:paddingTop="12dp"
+        android:background="@drawable/togglebutton_custom"
         android:textOff="@string/label_appFolder"
         android:textOn="@string/label_appFolder" />
 
@@ -122,8 +124,10 @@
         android:id="@+id/listView_fileNames"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/toggleButton_appFolder"
-        android:layout_toRightOf="@+id/toggleButton_SD" >
+        android:layout_alignTop="@id/toggleButton_appFolder"
+        android:layout_toRightOf="@id/toggleButton_SD"
+        android:background="@color/list_background" >
+		<!-- "@android:color/background_light" -->
     </ListView>
 
 </RelativeLayout>

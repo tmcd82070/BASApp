@@ -1,8 +1,6 @@
-package com.west.bas;
+package com.west.bas.database;
 
-import com.west.bas.database.SampleDatabaseHelper;
 import com.west.bas.database.SampleDatabaseHelper.SampleInfo;
-import com.west.bas.spatial.SamplePoint;
 import com.west.bas.ui.RefreshCallback;
 
 import android.content.ContentValues;
@@ -17,7 +15,7 @@ import android.os.AsyncTask;
  * 
  * West EcoSystems Technologies, Inc (2013)
  */
-public class UpdateTask  extends AsyncTask<Void, Void, Integer>{
+public class UpdateSampleAsyncTask  extends AsyncTask<Void, Void, Integer>{
 
 	/** Constant to indicate success when updating the database */
 	public static final int SUCCESS = 0;
@@ -38,7 +36,7 @@ public class UpdateTask  extends AsyncTask<Void, Void, Integer>{
 	private int mSampleID;
 	
 	/** The status to which the sample point should be updated */
-	private SamplePoint.Status mStatus;
+	private SampleDatabaseHelper.Status mStatus;
 	
 	/** Comments to annotate the database modification (associated with
 	 * the sample that is being modified. */
@@ -63,8 +61,8 @@ public class UpdateTask  extends AsyncTask<Void, Void, Integer>{
 	 * @param comment narrative to annotate the update
 	 * @param refreshCallback callback to post a refresh on the UI thread
 	 */
-	public UpdateTask(Context c, String studyName, int id, 
-			SamplePoint.Status status, 
+	public UpdateSampleAsyncTask(Context c, String studyName, int id, 
+			SampleDatabaseHelper.Status status, 
 			String comment, RefreshCallback refreshCallback){
 		mContext = c;
 		mStudyName = studyName;
@@ -84,7 +82,7 @@ public class UpdateTask  extends AsyncTask<Void, Void, Integer>{
 			return UPDATE_ERROR;
 		}else{
 			// if rejecting a sample, change an oversample to a sample
-			if(mStatus==SamplePoint.Status.REJECT){
+			if(mStatus==SampleDatabaseHelper.Status.REJECT){
 				return mDbHelper.makeSample(mStudyName);
 			}else{
 				return SUCCESS;

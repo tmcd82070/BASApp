@@ -14,11 +14,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 import android.util.Log;
 
-import com.google.android.gms.maps.model.LatLng;
-import com.west.bas.UpdateTask;
-import com.west.bas.spatial.SamplePoint;
-import com.west.bas.spatial.SamplePoint.SampleType;
-
 //TODO create a second table to hold the study information
 
 /**
@@ -32,6 +27,52 @@ import com.west.bas.spatial.SamplePoint.SampleType;
  */
 public class SampleDatabaseHelper extends SQLiteOpenHelper {
 
+	/** 
+	 * Each generated point is labeled as either a necessary collection point 
+	 * (SAMPLE) or is provided as an alternative to a necessary point that gets 
+	 * rejected in the field (OVERSAMPLE)
+	 */
+	public static enum SampleType {
+		SAMPLE,OVERSAMPLE;
+
+		public String getString() {
+			return this.toString();
+		}
+	}
+	
+	/**
+	 * Four mutually exclusive status classification describe the state of 
+	 * each point.  Initially all points are either SAMPLE or OVERSAMPLE
+	 * (which matches the SampleType).  Any point marked COMPLETE has been
+	 * visited and data has been collected.  As collection occurs, some points may
+	 * be rejected from the sample.  In such a case, that point is marked as
+	 * REJECT and the next point in the sequence that is marked as OVERSAMPLE
+	 * is changed to a SAMPLE point that must be included to complete the 
+	 * data collection.
+	 * 
+	 * SAMPLE: 		a point that must be visited to complete the collection
+	 * OVERSAMPLE: 	an additional point generated in case others in the 
+	 * 				continuous block are rejected in the field
+	 * REJECT: 		a point that has been rejected in the field (e.g., 
+	 * 				inaccessible due to land ownership or hazardous conditions
+	 * COMPLETE: 	a point that has been visited and data was collected
+	 */
+	public static enum Status {SAMPLE, OVERSAMPLE, REJECT, COLLECTED;
+
+		public boolean matches(String status) {
+			return status.equalsIgnoreCase(this.toString());
+		}
+
+		public static Status getValueFromString(String status) {
+			if(status.equalsIgnoreCase("sample")) return SAMPLE;
+			if(status.equalsIgnoreCase("oversample")) return OVERSAMPLE;
+			if(status.equalsIgnoreCase("reject")) return REJECT;
+			if(status.equalsIgnoreCase("collected")) return COLLECTED;
+			return null;
+		}
+	}	
+	
+	
 	// V1: initial implementation
 	// V2: updated to include timestamp when creating an entry
 	// V3: created a field to indicate which study each point is associated with
@@ -143,17 +184,6 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 		return mDatabase.rawQuery(query, null);
 	}
 	
-	public LatLng getStudyCenter(String studyName) {
-		if(studyName==null) return null;
-		String query = "SELECT "+SampleInfo.COLUMN_NAME_FILE+" FROM "+SampleInfo.TABLE_NAME+
-				" WHERE "+SampleInfo.COLUMN_NAME_STUDY+"='"+studyName+"'";
-		
-		// TODO fix this! read from the study info table
-		float lat = 43;
-		float lng = -107.6F;
-		return new LatLng(lat, lng);
-	}
-
 	public String getSHPFilename(String studyName) {
 		if(studyName==null) return null;
 		String query = "SELECT "+SampleInfo.COLUMN_NAME_FILE+" FROM "+SampleInfo.TABLE_NAME+
@@ -211,19 +241,19 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 		
 		String innerQuery = "SELECT "+SampleInfo._ID+" FROM "+SampleInfo.TABLE_NAME+
 				" WHERE "+SampleInfo.COLUMN_NAME_STATUS+"='"+
-				SamplePoint.Status.OVERSAMPLE.toString()+"'"+
+				Status.OVERSAMPLE.toString()+"'"+
 				" AND "+SampleInfo.COLUMN_NAME_STUDY+"='"+studyName+"'";
 		String query = "SELECT MIN("+SampleInfo._ID+") AS "+SampleInfo._ID+" FROM ("+innerQuery+")";
 		Cursor cursor = mDatabase.rawQuery(query, null);
 		if(cursor.getCount()==0){
 			cursor.close();
-			return UpdateTask.INSUFFICIENT_SAMPLES_ERROR;
+			return UpdateSampleAsyncTask.INSUFFICIENT_SAMPLES_ERROR;
 		}
 		cursor.moveToFirst();
 		int id = cursor.getInt(cursor.getColumnIndex(SampleInfo._ID));	
 		cursor.close();
 		ContentValues values = new ContentValues();
-		values.put(SampleInfo.COLUMN_NAME_STATUS, SamplePoint.Status.SAMPLE.toString());
+		values.put(SampleInfo.COLUMN_NAME_STATUS, Status.SAMPLE.toString());
 		return update(values,id);
 	}
 
@@ -235,9 +265,29 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 					"_ID='"+mSampleID+"'",null);
 		}catch(SQLiteException e){
 			Log.d("database","Error getting writable database for update");
-			return UpdateTask.UPDATE_ERROR;
+			return UpdateSampleAsyncTask.UPDATE_ERROR;
 		}
-		return UpdateTask.SUCCESS;
+		return UpdateSampleAsyncTask.SUCCESS;
 	}
 
+	/** Strip any characters that are not alphanumeric, 
+	 * underscore, space, or period.
+	 * @param raw string that is raw user input
+	 * @return modified string
+	 */
+	public static String getCleanText(String raw) {
+		//accept alpha numeric, underscore, space, and period
+		return raw.replaceAll("[^a-zA-Z0-9_ \\.]", "");
+	}
+	
+	/**
+	 * Given an input string return a string that contains
+	 * only alpha-numeric characters and underscore
+	 * @param textField UI field that contains the user input
+	 * @return cleaned string
+	 */
+	public static String getCleanStudyNameString(String raw) {
+		raw = getCleanText(raw);
+		return raw.replaceAll(" ","_");
+	}
 }

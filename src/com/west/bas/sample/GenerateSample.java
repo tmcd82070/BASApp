@@ -12,7 +12,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.west.bas.database.SampleDatabaseHelper;
-import com.west.bas.spatial.SamplePoint.SampleType;
+import com.west.bas.database.SampleDatabaseHelper.SampleType;
 import com.west.bas.spatial.StudyArea;
 import com.west.bas.ui.RefreshCallback;
 
@@ -217,7 +217,7 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 	public void onPostExecute(Integer i){
 		if(i<0){
 			Log.d("generate","Error! "+i);
-			// tell the user what happened!
+			// TODO tell the user what happened!
 			// GENERATE_SAMPLE_FILEIO_ERROR
 			// GENERATE_SAMPLE_DATABASE_ERROR
 		}else{

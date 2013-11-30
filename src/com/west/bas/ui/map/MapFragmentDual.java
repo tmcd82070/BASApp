@@ -1,4 +1,4 @@
-package com.west.bas.ui;
+package com.west.bas.ui.map;
 
 import android.os.Bundle; 
 import android.util.Log;

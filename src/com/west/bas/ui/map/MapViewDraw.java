@@ -1,4 +1,4 @@
-package com.west.bas.ui;
+package com.west.bas.ui.map;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -13,7 +13,7 @@ import android.view.View;
 
 import com.west.bas.R;
 import com.west.bas.database.SampleDatabaseHelper.SampleInfo;
-import com.west.bas.spatial.SamplePoint.Status;
+import com.west.bas.database.SampleDatabaseHelper.Status;
 import com.west.bas.spatial.StudyArea;
 
 public class MapViewDraw extends View {

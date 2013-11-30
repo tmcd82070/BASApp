@@ -84,10 +84,10 @@ public class BrowserAdapter extends ArrayAdapter<String> {
 		String itemName = getItem(position);
 		if(itemName.equals(NO_FILES_WARNING)){
 			rowView = inflater.inflate(R.layout.row_text_with_icon, parent, false);
-			((ImageView) rowView.findViewById(R.id.icon)).setImageResource(R.drawable.folder_empty);
+			((ImageView) rowView.findViewById(R.id.icon)).setImageResource(R.drawable.icon_folder_empty);
 		}else if(itemName.equals(UP_ONE_LEVEL)){
 			rowView = inflater.inflate(R.layout.row_text_with_icon, parent, false);
-			((ImageView) rowView.findViewById(R.id.icon)).setImageResource(R.drawable.folder_up);
+			((ImageView) rowView.findViewById(R.id.icon)).setImageResource(R.drawable.icon_folder_back);
 		}else if(new File(itemName).isDirectory()){
 			//uses the default icon
 			rowView = inflater.inflate(R.layout.row_text_with_icon, parent, false);

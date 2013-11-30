@@ -1,6 +1,7 @@
 package com.west.bas;
 
 import java.util.ArrayList;
+import java.util.Vector;
 
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
@@ -8,6 +9,8 @@ import android.app.AlertDialog;
 import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.database.Cursor;
+import android.os.AsyncTask;
+import android.os.AsyncTask.Status;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
@@ -25,20 +28,30 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.vividsolutions.jts.geom.Coordinate;
 import com.west.bas.database.SampleDatabaseHelper;
 import com.west.bas.database.SampleDatabaseHelper.SampleInfo;
+import com.west.bas.database.UpdateSampleAsyncTask;
 import com.west.bas.sample.GenerateSample;
+import com.west.bas.spatial.ReadStudyAreaAsyncTask;
+import com.west.bas.spatial.ReadStudyAreaCallback;
 import com.west.bas.spatial.StudyArea;
 import com.west.bas.ui.CreateBASCallback;
 import com.west.bas.ui.CreateBASDialog;
-import com.west.bas.ui.DetailListAdapter;
-import com.west.bas.ui.MapFragmentDual;
-import com.west.bas.ui.MapViewDraw;
-import com.west.bas.ui.ReadFileCallback;
 import com.west.bas.ui.RefreshCallback;
 import com.west.bas.ui.TabPagerAdapter;
+import com.west.bas.ui.UpdateSampleCallback;
+import com.west.bas.ui.UpdateSampleDialog;
+import com.west.bas.ui.map.MapFragmentDual;
+import com.west.bas.ui.map.MapViewDraw;
+import com.west.bas.ui.table.DetailListAdapter;
 
 /**
  * Balanced Acceptance Sampling - MainActivity
@@ -87,13 +100,37 @@ public class MainActivity extends FragmentActivity {
 	/** The (database safe) name of the study currently displayed **/
 	protected String mCurrentStudyName;
 	
+	/** Temporary storage space for the number of samples to generate.  
+	 * These values are stored as part of the activity while the study
+	 * area KML file is read.  If successful, these values are used to
+	 * create a new entry in the studies table of the database; if not,
+	 * these values are discarded. **/
+	protected int mCurrentStudySamples;
+	
+	/** Temporary storage space for the number of over samples to generate. 
+	 * @see #mCurrentStudySamples */
+	protected int mCurrentStudyOversamples;
+	
 	/** A StudyArea object that contains the details of the study 
 	 * that is currently displayed.  This object is used to store 
 	 * details pulled from the database an used to refresh the display.
 	 * There is the potential for the object to get out of sync with
 	 * the current database contents; reduces the number of calls to
 	 * the database. **/
-	protected StudyArea mCurrentStudy;
+	protected StudyArea mCurrentStudyArea;
+	
+	/** The GoogleMaps polygon that represents the study area */
+	private Polygon mStudyAreaPolygon;
+	
+	private RefreshCallback mRefreshCallback = new RefreshCallback(){
+		@Override
+		public void onTaskComplete(String message) {
+			refreshMainDisplays();
+			displayToast(message);
+		}
+	};
+	
+	private Vector<AsyncTask<?,?,?>> taskList = new Vector<AsyncTask<?,?,?>>();
 	
 	/** Initialize the two layouts (table and map).  When the application 
 	 * reopens, it reinstates the previous configuration, which includes
@@ -102,6 +139,19 @@ public class MainActivity extends FragmentActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		UpdateSampleDialog.initUpdateSampleDialog(
+				getBaseContext(), 
+				this, 
+				new UpdateSampleCallback(){
+					@Override
+					public void onTaskComplete(
+							int itemID,
+							SampleDatabaseHelper.Status status,
+							String comment) {
+						updateSamplePoint(itemID, status, comment);
+					}
+				});
+		
 		initInteraction(savedInstanceState);
 		
 		// restore previous state
@@ -182,7 +232,6 @@ public class MainActivity extends FragmentActivity {
 			mActionBar.setSelectedNavigationItem(0); 
 			mViewPager.setCurrentItem(0); 
 		} 
-
 	}
 
 	/** Store the view that was active and the study that is displayed 
@@ -198,7 +247,17 @@ public class MainActivity extends FragmentActivity {
 	 * (Not yet implemented) **/
 	@Override
 	protected void onPause(){
+		for(AsyncTask<?,?,?> task : taskList){
+			if(task!=null){
+				Status status = task.getStatus();
+				if(status==Status.RUNNING){
+					task.cancel(true);
+				}
+				task = null;
+			}
+		}
 		//TODO clean up on exit
+		// make sure all the cursors are closed
 		//http://stackoverflow.com/questions/18309958/activity-gets-crashed-with-fatal-signal-11-sigsegv-at-0x00000200-code-1
 		super.onPause();
 	}
@@ -263,46 +322,89 @@ public class MainActivity extends FragmentActivity {
 				new CreateBASCallback() {
 					@Override
 					public void onTaskComplete(String studyName,
-							final int nSamples, 
-							final int nOversamples,
+							int nSamples, 
+							int nOversamples,
 							String studyAreaFilename) {
-						mCurrentStudyName = studyName;
-
-						ReadStudyAreaTask reader = new ReadStudyAreaTask(
-								studyAreaFilename, 
-								studyName,
-								new ReadFileCallback() {
-									@Override
-									public void onTaskComplete(
-											StudyArea studyArea) {
-										if(studyArea==null){
-											displayToast("Error reading study area.");
-										}else if (studyArea.isValid()) {
-											mCurrentStudy = studyArea;
-											GenerateSample g = new GenerateSample(MainActivity.this,
-													mCurrentStudy,nSamples,nOversamples,new RefreshCallback(){
-												@Override
-												public void onTaskComplete(String message) {
-													refreshMainDisplays();
-													displayToast(message);
-												}
-											});
-											g.execute();
-										} else {
-											displayToast(studyArea
-													.getFailMessage());
-										}
-									}
-								});
-						reader.execute();
-
+						handleUserInputOfStudyDetails(studyName, nSamples,nOversamples,studyAreaFilename);
 					}
 				});
-		
 		dialog.show();		
 	}
 
+	private void handleUserInputOfStudyDetails(
+			String studyName, 
+			int nSamples, 
+			int nOversamples, 
+			String studyAreaFilename){
+		// Store the user input 
+		mCurrentStudyName = studyName;
+		mCurrentStudySamples = nSamples;
+		mCurrentStudyOversamples = nOversamples;
+		
+		// Try to read the study area KML file 
+		ReadStudyAreaAsyncTask reader = new ReadStudyAreaAsyncTask(
+				studyAreaFilename, 
+				studyName,
+				new ReadStudyAreaCallback() {
+					@Override
+					public void onTaskComplete(StudyArea studyArea) {
+						if(studyArea==null){
+							displayToast("Error reading study area.");
+							clearCurrentStudyDetails();
+						}else if (studyArea.isValid()) {
+							// last piece of required info needed to create the sample
+							mCurrentStudyArea = studyArea;
+							generateSamples();
+						} else {
+							displayToast(studyArea.getFailMessage());
+							clearCurrentStudyDetails();
+						}
+					}
+				});
+		taskList.add(reader);
+		reader.execute();
+	}
+	
+	protected void clearCurrentStudyDetails() {
+		mCurrentStudyName = null;
+		mCurrentStudyArea = null;
+		mCurrentStudySamples = 0;
+		mCurrentStudyOversamples = 0;
+	}
 
+	private void generateSamples(){
+		// Check that all four values were set
+		if(mCurrentStudyName==null || mCurrentStudyArea==null ||
+				!mCurrentStudyArea.isValid() ||
+				mCurrentStudySamples==0 || mCurrentStudyOversamples==0){
+			displayToast("The four necessary values were not all "
+					+ "initialized (required: study name, study area, "
+					+ "# samples, # oversamples).  Please try again.");
+			Log.d("userInput","Study name: "+mCurrentStudyName);
+			Log.d("userInput","Study area: "+mCurrentStudyArea);
+			Log.d("userInput","Study samples: "+mCurrentStudySamples);
+			Log.d("userInput","Study oversample: "+mCurrentStudyOversamples);
+			clearCurrentStudyDetails();
+		}else{
+			// TODO Create new entry in the database (studies table)
+			
+			GenerateSample g = new GenerateSample(MainActivity.this,
+					mCurrentStudyArea,mCurrentStudySamples,
+					mCurrentStudyOversamples,mRefreshCallback);
+			taskList.add(g);
+			g.execute();
+		}
+	}
+
+	private void updateSamplePoint(int itemID, SampleDatabaseHelper.Status status, String comment){
+		UpdateSampleAsyncTask updater = new UpdateSampleAsyncTask(
+				getBaseContext(), mCurrentStudyName, 
+				itemID, status, comment, mRefreshCallback);
+		taskList.add(updater);
+		updater.execute();
+	}
+	
+	
 	/** Present a list of studies (as found in the database) to the user
 	 * for them to make a selection.  When selected, the display is refreshed.
 	 */
@@ -387,17 +489,18 @@ public class MainActivity extends FragmentActivity {
 			
 			// Determine whether or not the study has been retrieved from the database
 			// if not, read in the study details (then try again)
-			if(mCurrentStudy==null){
-				ReadStudyAreaTask reader = new ReadStudyAreaTask(db.getSHPFilename(mCurrentStudyName),mCurrentStudyName, new ReadFileCallback(){
+			if(mCurrentStudyArea==null){
+				ReadStudyAreaAsyncTask reader = new ReadStudyAreaAsyncTask(db.getSHPFilename(mCurrentStudyName),mCurrentStudyName, new ReadStudyAreaCallback(){
 					@Override
 					public void onTaskComplete(StudyArea studyArea) {
-						mCurrentStudy = studyArea;
-						if(mCurrentStudy==null){
+						mCurrentStudyArea = studyArea;
+						if(mCurrentStudyArea==null){
 							displayToast("Error loading a study: "+mCurrentStudyName);
 						}else{
 							refreshMainDisplays();
 						}
 					}});
+				taskList.add(reader);
 				reader.execute();
 				return;
 			}
@@ -407,29 +510,84 @@ public class MainActivity extends FragmentActivity {
 		
 			// If the map is a GoogleMap, place markers at each sample location
 			// Otherwise, draw points on a simple canvas
-			MapFragmentDual mapFragment = (MapFragmentDual) ((TabPagerAdapter) mViewPager.getAdapter()).getItem(TabPagerAdapter.MAP_ITEM);
+			MapFragmentDual mapFragment = 
+					(MapFragmentDual) ((TabPagerAdapter) mViewPager.getAdapter())
+					.getItem(TabPagerAdapter.MAP_ITEM);
+			
 			if(mapFragment.isGoogleMap()){
 				GoogleMap map = mapFragment.getGoogleMap();
-				if(map!=null){
-					map.moveCamera(CameraUpdateFactory.newLatLng(db.getStudyCenter(mCurrentStudyName)));
+				if(map!=null && mCurrentStudyArea!=null){
+					map.clear();
+
+					// Respond to user clicks within the GoogleMap
+					//TODO only set this up once...
+					map.setOnMarkerClickListener(new OnMarkerClickListener(){
+						@Override
+						public boolean onMarkerClick(Marker m) {
+							int id = Integer.valueOf(m.getTitle());
+							UpdateSampleDialog.getUpdateSampleDialog(id).show();
+							Log.d("click","[MainActivity] selected: "+id);
+							// consume the event (don't proceed to default action(s))
+							return true;
+						}});
+
+					map.moveCamera(CameraUpdateFactory.newLatLng(mCurrentStudyArea.getCenterLatLng()));
+					
 					// draw the study area bounds on the map
+					Coordinate[] coords = mCurrentStudyArea.getBoundaryPoints();
+					ArrayList<ArrayList<LatLng>> holes = mCurrentStudyArea.getHoles();
+					if(mStudyAreaPolygon==null){
+						// Instantiates a new Polygon object and adds points to define a rectangle
+						PolygonOptions polygonOptions = new PolygonOptions();
+						for(int i=0;i<coords.length;i++){
+							polygonOptions.add(new LatLng(coords[i].x, coords[i].y));
+						}
+						for(ArrayList<LatLng> hole : holes) polygonOptions.addHole(hole);
+						// Draw with transparent fill
+						polygonOptions.fillColor(android.R.color.transparent);
+						// Draw with red outline
+						polygonOptions.strokeColor(R.color.highlight);
+						// Add the polygon to the map and store a handle (to reuse the color settings)
+						mStudyAreaPolygon = map.addPolygon(polygonOptions);
+					}else{
+						ArrayList<LatLng> points = new ArrayList<LatLng>();
+						for(int i=0;i<coords.length;i++){
+							points.add(new LatLng(coords[i].x, coords[i].y));
+						}
+						mStudyAreaPolygon.setPoints(points);
+						mStudyAreaPolygon.setHoles(holes);
+					}
 					
 					// draw the sample points on the map
 					cursor.moveToFirst();
 					while(!cursor.isAfterLast()){
 						float x = cursor.getFloat(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_X));
 						float y = cursor.getFloat(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_Y));
+						// ID is used to determine which row of the database to update
+						int id = cursor.getInt(cursor.getColumnIndex(SampleInfo._ID));
+						// status is used to color code the marker (i.e., select the icon)
 						String typeLabel = cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STATUS));
-						String comment = cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_COMMENT));
 						MarkerOptions marker = new MarkerOptions().position(new LatLng(y, x))
-								.title(typeLabel)
-								.snippet(comment);
-						// TODO change color of icon based on type?
+								.title(""+id)
+								.draggable(false);
+						switch(SampleDatabaseHelper.Status.getValueFromString(typeLabel)){
+						case SAMPLE: 
+							marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_sample)); 
+							break;
+						case OVERSAMPLE: 
+							marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_oversample)); 
+							break;
+						case REJECT: 
+							marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_reject)); 
+							break;
+						case COLLECTED: 
+							marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_collected)); 
+							break;
+						}
 						map.addMarker(marker);
 						Log.d("checkPoints","x: "+x+" y: "+y+", "+typeLabel);
 						cursor.moveToNext();
 					}
-					displayToast("Plotted sample points");
 				}else{
 					displayToast("Google map is null");
 				}
@@ -437,20 +595,31 @@ public class MainActivity extends FragmentActivity {
 				// refresh the map
 				MapViewDraw mapView = (MapViewDraw) this.getWindow().findViewById(R.id.mapView_drawMap);
 				
-				mapView.initView(cursor,mapView.getWidth(),mapView.getHeight(), mCurrentStudy);
+				mapView.initView(cursor,mapView.getWidth(),mapView.getHeight(), mCurrentStudyArea);
+				
+				// for drawing on a canvas (not updated)
+//				public void draw(Canvas c, Paint outline, Paint background){
+//					c.drawRect(mAdjustedBB, background);
+//					
+//					c.drawPath(studyAreaPolygon,outline);
+//					
+//					studyAreaPolygon.transform(mTransform);
+//				}
 				mapView.invalidate();
 			}
 		
-		// refresh the table
-		ListView myList = (ListView) this.getWindow().findViewById(android.R.id.list);
-		if(myList!=null){
-			DetailListAdapter adapter = (DetailListAdapter) myList.getAdapter();
-			//TODO difference between change cursor and swap cursor
-			adapter.swapCursor(cursor);
-		}
+			// refresh the table
+			ListView tableListView = (ListView) this.getWindow().findViewById(android.R.id.list);
+			if(tableListView!=null){
+				DetailListAdapter adapter = (DetailListAdapter) tableListView.getAdapter();
+				//TODO difference between change cursor and swap cursor
+				adapter.swapCursor(cursor);
+			}
 			setTitle("Sample: "+mCurrentStudyName);
 		}
 	}
+
+	
 	
 	/** A helper method to present narrative feedback to the user. All 
 	 * message use the same length (LONG).

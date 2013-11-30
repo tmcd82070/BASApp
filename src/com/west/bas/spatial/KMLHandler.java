@@ -113,10 +113,9 @@ public class KMLHandler extends DefaultHandler{
 		if(tag==KMLTag.Polygon){
 			if(mPolygon!=null) Log.e("parseXML","More than one polygon found!");
 			mPolygon = f.createPolygon(boundary,holes);
-			// computes it too?
+			// Called to create the bounding box within the Polygon object
+			@SuppressWarnings("unused")
 			Envelope env = mPolygon.getEnvelopeInternal();
-			Envelope bb = mPolygon.getBoundary().getEnvelopeInternal();
-			bb.getMinX();
 		}
 		if(tag!=parent.lastElement()){
 			Log.e("parseKML","Error parsing: unmatched tag: "+tag);
