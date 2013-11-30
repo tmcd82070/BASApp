@@ -102,8 +102,7 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 	 * @param base number system for which the Halton sequence will be generated
 	 * @return list of digits (in given base) for the seed of the Halton sequence
 	 */
-	private ArrayList<Integer> initSeedBuffer(int nPoints, int base){
-		int seed = sRand.nextInt(SUFFICIENTLY_LARGE_U);
+	private ArrayList<Integer> initSeedBuffer(int nPoints, int base, int seed){
 		int estMaxSeedValue = seed+nPoints;
 		int nDigits = (int)(Math.log(estMaxSeedValue) / Math.log(base)); 
 		ArrayList<Integer> buffer = new ArrayList<Integer>(nDigits);
@@ -187,10 +186,22 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 			return -1;
 		}
 		int nPoints = mStudyArea.estimateNumPointsNeeded(mNumberSamples + mNumberOversamples);
-		mInputX = initSeedBuffer(nPoints, sBaseX);
-		mInputY = initSeedBuffer(nPoints, sBaseY);
+		int seedX = sRand.nextInt(SUFFICIENTLY_LARGE_U);
+		mInputX = initSeedBuffer(nPoints, sBaseX, seedX);
+		
+		int seedY = sRand.nextInt(SUFFICIENTLY_LARGE_U);
+		mInputY = initSeedBuffer(nPoints, sBaseY, seedY);
 
+		// Create an entry in the study table (couldn't do it 
+		// earlier because seeds weren't known yet, but are
+		// required in the table).
+		mDbHelper.addStudy(
+				mStudyArea.getStudyName(),
+				mStudyArea.getFilename(),
+				seedX,seedY);
+		
 		float[] coords = null;
+		
 		// Generate samples
 		for(int i=0;i<(mNumberSamples+mNumberOversamples);i++){
 			coords = mStudyArea.getSampleLocation(nextPoint());
@@ -201,7 +212,7 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 			}else{
 				// if the point is in the study area, add it to the database
 				// use a 1-up counter (for display to users)
-				if(-1==mDbHelper.addValue(mStudyArea.getName(),mStudyArea.getFilename(),i+1,sampleType,coords[0],coords[1])){
+				if(-1==mDbHelper.addValue(mStudyArea.getStudyName(),i+1,sampleType,coords[0],coords[1])){
 					Log.d("DBentry","Failed to insert row in the database");
 					return -1;
 				}
@@ -209,7 +220,11 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 				coords = null;
 			}
 		}
-		//Log.d("generate", dbHelper.prettyPrint()); 
+		
+		mDbHelper.updateStudy(mStudyArea.getStudyName(), rejectedCount);
+		
+		Log.d("generate", mDbHelper.prettyPrint()); 
+		
 		return rejectedCount;
 	} 
 
@@ -224,7 +239,7 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 			// TODO record the number of rejected points?
 			Log.d("generate", "Number of rejected points: "+i);
 			Log.d("generate", mDbHelper.prettyPrint());
-			if(callback!=null) callback.onTaskComplete("Sample generated for "+mStudyArea.getName());
+			if(callback!=null) callback.onTaskComplete("Sample generated for "+mStudyArea.getStudyName());
 		}
 	}
 }

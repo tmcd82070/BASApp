@@ -386,8 +386,6 @@ public class MainActivity extends FragmentActivity {
 			Log.d("userInput","Study oversample: "+mCurrentStudyOversamples);
 			clearCurrentStudyDetails();
 		}else{
-			// TODO Create new entry in the database (studies table)
-			
 			GenerateSample g = new GenerateSample(MainActivity.this,
 					mCurrentStudyArea,mCurrentStudySamples,
 					mCurrentStudyOversamples,mRefreshCallback);
@@ -506,7 +504,7 @@ public class MainActivity extends FragmentActivity {
 			}
 			
 			// If the study has already been read in, display its contents in the map and table
-			Cursor cursor = db.getStudyDetails(mCurrentStudyName);
+			Cursor cursor = db.getSamplePointsForStudy(mCurrentStudyName);
 		
 			// If the map is a GoogleMap, place markers at each sample location
 			// Otherwise, draw points on a simple canvas
@@ -605,6 +603,7 @@ public class MainActivity extends FragmentActivity {
 //					
 //					studyAreaPolygon.transform(mTransform);
 //				}
+//				mapView.initView(cursor,mapView.getWidth(),mapView.getHeight(), db.getStudyBounds(mCurrentStudyName));
 				mapView.invalidate();
 			}
 		

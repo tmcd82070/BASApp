@@ -67,6 +67,7 @@ public class StudyArea {
 			holes.add(hole);
 		}
 		return holes;
+
 	}
 
 //	public Path getStudyAreaAsPath(){
@@ -77,7 +78,7 @@ public class StudyArea {
 	public boolean isValid(){ return mFail==null; }
 	public String getFailMessage(){ return mFail; }
 	
-	public String getName(){ return mStudyName; }
+	public String getStudyName(){ return mStudyName; }
 	
 	public String getFilename() { return mFilename; }
 	
