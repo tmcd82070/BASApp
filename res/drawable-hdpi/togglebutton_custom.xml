@@ -2,5 +2,7 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@drawable/togglebutton_pressed"
         android:state_checked="true" />
+    <item android:drawable="@drawable/togglebutton_disabled"
+        android:state_enabled="false" />
     <item android:drawable="@drawable/togglebutton_default" />
 </selector>

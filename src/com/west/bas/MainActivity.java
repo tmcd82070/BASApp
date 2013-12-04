@@ -45,6 +45,8 @@ import com.west.bas.spatial.ReadStudyAreaCallback;
 import com.west.bas.spatial.StudyArea;
 import com.west.bas.ui.CreateBASCallback;
 import com.west.bas.ui.CreateBASDialog;
+import com.west.bas.ui.ExportCallback;
+import com.west.bas.ui.ExportDialog;
 import com.west.bas.ui.RefreshCallback;
 import com.west.bas.ui.TabPagerAdapter;
 import com.west.bas.ui.UpdateSampleCallback;
@@ -463,7 +465,15 @@ public class MainActivity extends FragmentActivity {
 	 * application's SQLite database to the SD card or to an external server.
 	 */
 	private void exportBAS(){
-		displayToast("[MainActivity] Need to implement the export!");
+		new ExportDialog(this, mCurrentStudyName, new ExportCallback(){
+			@Override
+			public void onTaskComplete(boolean exportAll, String exportFilename) {
+				displayToast("[MainActivity] Need to implement the export!");
+//				ExportAsyncTask();
+			}}).show();
+		
+		
+		
 	}
 	
 

@@ -237,7 +237,7 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 	
 	public String getSHPFilename(String studyName) {
 		if(studyName==null) return null;
-		String query = "SELECT "+StudyInfo.COLUMN_NAME_SHAPEFILE+" FROM "+SampleInfo.TABLE_NAME+
+		String query = "SELECT "+StudyInfo.COLUMN_NAME_SHAPEFILE+" FROM "+StudyInfo.TABLE_NAME+
 				" WHERE "+StudyInfo.COLUMN_NAME_STUDYNAME+"='"+studyName+"'";
 		Cursor cursor = mDatabase.rawQuery(query, null);
 		if(cursor.getCount()>0){

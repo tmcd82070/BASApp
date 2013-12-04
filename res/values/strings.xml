@@ -8,7 +8,7 @@
     
     <string name="action_create">Create</string>
     <string name="action_load">Load</string>
-    <string name="action_export">Export</string>
+    <string name="action_export">Export to SD</string>
     
     <!-- UI display -->
     <string name="display_number">[Sample Number]</string>
@@ -32,6 +32,9 @@
 	<string name="label_reject">Reject</string>
 	<string name="label_collected">Collected</string>
 	<string name="label_collect">Collect</string>
+	<string name="label_currentStudy">Current\nstudy</string>
+	<string name="label_allStudies">All\nstudies</string>
+	<string name="label_exportFilename">Filename:</string>
 	<string name="label_comment">Comments</string>
 	
 	<string name="label_SD">SD Card</string>
@@ -47,6 +50,7 @@
 	<string name="hint_sampleSize">Number of samples (n)</string>
     <string name="hint_oversampleSize">Samples in reserve</string>
 	<string name="hint_noStudy">Use the menu to generate a BAS or\nload an existing sample.</string>
+	<string name="hint_filename">Filename (.csv)</string>
     
     <!-- Accessibility description -->
     <string name="describe_studyArea">Graphical display of study area boundary</string>
@@ -56,6 +60,7 @@
     <color name="highlight">#AA2222</color>
     <color name="near_me">#FFFF33</color>
     <color name="warning">#CCCC00</color>
+    <color name="disabled">#404040</color>
     
     <color name="collected">#ff33ff33</color>
     <color name="rejected">#ffff3333</color>

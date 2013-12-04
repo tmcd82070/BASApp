@@ -24,6 +24,6 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="26dp"
         android:text="@string/label_sampleName"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
 </RelativeLayout>
