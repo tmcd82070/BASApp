@@ -6,11 +6,9 @@ import java.util.Vector;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnShowListener;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -37,64 +35,33 @@ import com.west.bas.sample.GenerateSample;
  * 
  * @see GenerateSample
  */
-public class CreateBASDialog{
+public class CreateBASDialog extends AlertDialog{
 
 	/** Recommendations for the number of oversamples is based on 
 	 * a scalar multiple of the number of samples. */
 	public static final int RATIO_OVERSAMPLES_TO_SAMPLES = 2;
 	
-	private static int sBlack;
-	private static int sHighlight;
-	private static int sWarning;
-	
-	private static AlertDialog sDialog=null;
-	
 	// Disallow instantiation
-	private CreateBASDialog(){}
-	
-	public static AlertDialog getCreateBASDialog(
-			Context context, 
-			CreateBASCallback callback){
+	public CreateBASDialog(Context context, CreateBASCallback callback){
+		super(context);
+		final View.OnClickListener checkFieldsOnClick = 
+				initLayoutWidgets(context,callback);
 		
-		// Initialize colors used to highlight elements 
-		// as part of graphical feedback
-		initColors(context);
+		OnClickListener typedNullListener = new OnClickListener(){
+			@Override
+			public void onClick(DialogInterface dialog, int which) {}
+		};	
+		setButton(BUTTON_POSITIVE, "Create", typedNullListener);
+		setButton(BUTTON_NEGATIVE, "Cancel", typedNullListener);
 
-		// Inflate the layout from XML
-		LayoutInflater inflater = LayoutInflater.from(context);
-		View layout = inflater.inflate(R.layout.dialog_create, null);
-		final OnClickListener checkFieldsOnClick = initLayoutWidgets(layout,context,callback);
-		
-		AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
-		builder.setView(layout);
-		// let the default listener take care of closing the dialog
-		builder.setNegativeButton("Cancel",null);
-		builder.setPositiveButton("Create",null);
-		
-		sDialog = builder.create();
-		sDialog.setOnShowListener(new OnShowListener(){
+		setOnShowListener(new OnShowListener(){
 			@Override
 			public void onShow(DialogInterface di) {
-				Button createBtn = sDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+				Button createBtn = CreateBASDialog.this.getButton(AlertDialog.BUTTON_POSITIVE);
 				createBtn.setOnClickListener(checkFieldsOnClick);
 			}
-		});
-		return sDialog;
+		});	
 	}
-
-	
-	/** Initialize colors used to encode status in the graphical
-	 * user interface.  Colors are initialized only once.
-	 * @param c
-	 */
-	private static void initColors(Context c){
-		if(sBlack==0 || sHighlight==0 || sWarning==0){
-			sBlack = c.getResources().getColor(android.R.color.black);
-			sHighlight = c.getResources().getColor(R.color.highlight);
-			sWarning = c.getResources().getColor(R.color.warning);
-		}
-	}
-	
 
 	/**
 	 * Initialize listeners to accept user input and provide feedback.
@@ -111,9 +78,15 @@ public class CreateBASDialog{
 	 * @param context application context to locate database
 	 * @param callback 
 	 */
-	private static OnClickListener initLayoutWidgets(View layout, 
+	private View.OnClickListener initLayoutWidgets(
 			final Context context, 
 			final CreateBASCallback callback) {
+		
+		// Inflate the layout from XML
+		LayoutInflater inflater = LayoutInflater.from(context);
+		View layout = inflater.inflate(R.layout.dialog_create, null);
+		setView(layout);
+		
 		// Labels (connected to facilitate color coding text)
 		final TextView studyNameLabel = 
 				(TextView) layout.findViewById(R.id.textView_labelSampleName);
@@ -141,7 +114,7 @@ public class CreateBASDialog{
 				// reset the text color when the user has made changes
 				// so that the specified name is not already in the list
 				if(!studyList.contains(studyNameTxt.getText().toString())){
-					studyNameLabel.setTextColor(sBlack);
+					studyNameLabel.setTextColor(ColorHelper.black());
 				}
 			}});
 		final EditText numberSamplesTxt = 
@@ -153,7 +126,7 @@ public class CreateBASDialog{
 					// Removes color highlighting, but doesn't check yet
 					String raw = numberSamplesTxt.getText().toString();
 					if(raw.length()>0){
-						numberSamplesLabel.setTextColor(sBlack);
+						numberSamplesLabel.setTextColor(ColorHelper.black());
 					}
 				}
 			}});
@@ -171,7 +144,7 @@ public class CreateBASDialog{
 				if(!hasFocus){
 					String raw = numberOversamplesTxt.getText().toString();
 					if(raw.length()>0){
-						numberOversamplesLabel.setTextColor(sBlack);
+						numberOversamplesLabel.setTextColor(ColorHelper.black());
 					}
 				} 
 			}
@@ -214,7 +187,7 @@ public class CreateBASDialog{
 				boolean isFile = ((BrowserAdapter) listView.getAdapter()).handleSelection(selectedString);
 				if(isFile){
 					filenameDisplay.setText(selectedString);
-					filenameLabel.setTextColor(sBlack);
+					filenameLabel.setTextColor(ColorHelper.black());
 				}
 			}});
 		
@@ -230,7 +203,7 @@ public class CreateBASDialog{
 		
 		// Verify any values entered: if valid, generate samples 
 		// (otherwise provide feedback to user about why invalid)
-		OnClickListener checkFieldsOnClick = new OnClickListener() {
+		View.OnClickListener checkFieldsOnClick = new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				// check the values
@@ -249,7 +222,7 @@ public class CreateBASDialog{
 							"Empty study name or invalid characters", 
 							Toast.LENGTH_SHORT).show();
 					displayedToast=true;
-					studyNameLabel.setTextColor(sHighlight);
+					studyNameLabel.setTextColor(ColorHelper.highlight());
 					isValid = false;	
 				}else{
 					if(studyList.contains(studyName)){
@@ -258,11 +231,11 @@ public class CreateBASDialog{
 								"Load existing BAS or select a unique name.", 
 								Toast.LENGTH_SHORT).show();
 						displayedToast=true;
-						studyNameLabel.setTextColor(sHighlight);
+						studyNameLabel.setTextColor(ColorHelper.highlight());
 						isValid = false;	
 					}else if(!studyName.equals(studyNameTxt.getText().toString())){
 						studyNameTxt.setText(studyName);
-						studyNameLabel.setTextColor(sWarning);
+						studyNameLabel.setTextColor(ColorHelper.warning());
 						Toast.makeText(context, 
 								"Revised study name to contain only\n"+
 								"alpha-numeric characters and underscore", 
@@ -270,7 +243,7 @@ public class CreateBASDialog{
 						displayedToast = true;
 						isValid=false;
 					}else{
-						studyNameLabel.setTextColor(sBlack);
+						studyNameLabel.setTextColor(ColorHelper.black());
 					}
 				}
 
@@ -281,10 +254,10 @@ public class CreateBASDialog{
 								Toast.LENGTH_SHORT).show();
 						displayedToast = true;
 					}
-					numberSamplesLabel.setTextColor(sHighlight);
+					numberSamplesLabel.setTextColor(ColorHelper.highlight());
 					isValid = false;
 				}else{
-					numberSamplesLabel.setTextColor(sBlack);
+					numberSamplesLabel.setTextColor(ColorHelper.black());
 				}
 				
 				if(nOversamples<0){
@@ -294,10 +267,10 @@ public class CreateBASDialog{
 								Toast.LENGTH_SHORT).show();
 						displayedToast = true;
 					}
-					numberOversamplesLabel.setTextColor(sHighlight);
+					numberOversamplesLabel.setTextColor(ColorHelper.highlight());
 					isValid = false;
 				}else{
-					numberOversamplesLabel.setTextColor(sBlack);
+					numberOversamplesLabel.setTextColor(ColorHelper.black());
 				}
 				
 				if(studyAreaFilename == null || studyAreaFilename.isEmpty() ||
@@ -308,10 +281,10 @@ public class CreateBASDialog{
 								Toast.LENGTH_SHORT).show();
 						displayedToast = true;
 					}
-					filenameLabel.setTextColor(sHighlight);
+					filenameLabel.setTextColor(ColorHelper.highlight());
 					isValid = false;
 				}else{
-					filenameLabel.setTextColor(sBlack);
+					filenameLabel.setTextColor(ColorHelper.black());
 				}
 				
 				if(isValid){
@@ -320,7 +293,7 @@ public class CreateBASDialog{
 							nSamples, 			// number of samples
 							nOversamples, 		// number of over samples
 							studyAreaFilename); // absolute path to file containing study area
-					sDialog.dismiss();
+					dismiss();
 				}
 			}
 

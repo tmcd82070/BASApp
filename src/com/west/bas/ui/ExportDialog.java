@@ -20,15 +20,10 @@ import com.west.bas.database.SampleDatabaseHelper;
 
 public class ExportDialog extends AlertDialog {
 
-	private static int sBlack;
-	private static int sHighlight;
-	private static int sWarning;
-	
 
 	public ExportDialog(Context context, String studyName, 
 			ExportCallback callback) {
 		super(context);
-		initColors(context);
 		final View.OnClickListener checkFieldsOnClick = 
 				initLayout(context,studyName!=null,callback);
 		
@@ -48,17 +43,7 @@ public class ExportDialog extends AlertDialog {
 		});
 	}
 	
-	/** Initialize colors used to encode status in the graphical
-	 * user interface.  Colors are initialized only once.
-	 * @param c
-	 */
-	private static void initColors(Context c){
-		if(sBlack==0 || sHighlight==0 || sWarning==0){
-			sBlack = c.getResources().getColor(android.R.color.black);
-			sHighlight = c.getResources().getColor(R.color.highlight);
-			sWarning = c.getResources().getColor(R.color.warning);
-		}
-	}
+
 	
 	private View.OnClickListener initLayout(final Context context, 
 			boolean hasSelectedStudy,
@@ -67,7 +52,6 @@ public class ExportDialog extends AlertDialog {
 		LayoutInflater inflater = LayoutInflater.from(context);
 		View layout = inflater.inflate(R.layout.dialog_export,null);
 		setView(layout);
-		
 		
 		// Labels (connected to facilitate color coding text)
 		final TextView exportFilenameLabel = 
@@ -79,7 +63,7 @@ public class ExportDialog extends AlertDialog {
 		exportFilenameTxt.setOnFocusChangeListener(new OnFocusChangeListener(){
 			@Override
 			public void onFocusChange(View v, boolean hasFocus) {
-				if(hasFocus) exportFilenameLabel.setTextColor(sBlack);
+				if(hasFocus) exportFilenameLabel.setTextColor(ColorHelper.black());
 			}});
 		
 		// Buttons that select the data to export
@@ -117,17 +101,17 @@ public class ExportDialog extends AlertDialog {
 				// check the values
 				String filename = SampleDatabaseHelper.getCleanText(exportFilenameTxt.getText().toString());
 				if(filename.isEmpty()){
-					exportFilenameLabel.setTextColor(sHighlight);
+					exportFilenameLabel.setTextColor(ColorHelper.highlight());
 					Toast.makeText(context, 
 							"A name for the output file is required", 
 							Toast.LENGTH_SHORT).show();
 				}else if(!filename.endsWith(".csv")){
-					exportFilenameLabel.setTextColor(sHighlight);
+					exportFilenameLabel.setTextColor(ColorHelper.highlight());
 					Toast.makeText(context, 
 							"The output file must have extension .csv", 
 							Toast.LENGTH_SHORT).show();					
 				}else if(new File(Environment.getExternalStorageDirectory()+"/"+filename).exists()){
-					exportFilenameLabel.setTextColor(sHighlight);
+					exportFilenameLabel.setTextColor(ColorHelper.highlight());
 					Toast.makeText(context, 
 							"A file with that name already exists on the SD card; "
 							+ "enter a unique name (or delete the existing file)", 

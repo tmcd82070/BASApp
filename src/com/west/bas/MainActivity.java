@@ -43,6 +43,7 @@ import com.west.bas.sample.GenerateSample;
 import com.west.bas.spatial.ReadStudyAreaAsyncTask;
 import com.west.bas.spatial.ReadStudyAreaCallback;
 import com.west.bas.spatial.StudyArea;
+import com.west.bas.ui.ColorHelper;
 import com.west.bas.ui.CreateBASCallback;
 import com.west.bas.ui.CreateBASDialog;
 import com.west.bas.ui.ExportCallback;
@@ -141,18 +142,7 @@ public class MainActivity extends FragmentActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		UpdateSampleDialog.initUpdateSampleDialog(
-				getBaseContext(), 
-				this, 
-				new UpdateSampleCallback(){
-					@Override
-					public void onTaskComplete(
-							int itemID,
-							SampleDatabaseHelper.Status status,
-							String comment) {
-						updateSamplePoint(itemID, status, comment);
-					}
-				});
+		ColorHelper.init(this);
 		
 		initInteraction(savedInstanceState);
 		
@@ -171,6 +161,7 @@ public class MainActivity extends FragmentActivity {
 		refreshMainDisplays();
 
 	}
+
 
 	/** Set up the main layout with two views: a map and a table
 	 * The user navigates between these views using either a swipe
@@ -319,7 +310,7 @@ public class MainActivity extends FragmentActivity {
 	 * @see GenerateSample
 	 */	
 	private void createBAS() {
-		AlertDialog dialog = CreateBASDialog.getCreateBASDialog(
+		AlertDialog dialog = new CreateBASDialog(
 				this, 
 				new CreateBASCallback() {
 					@Override
@@ -396,7 +387,24 @@ public class MainActivity extends FragmentActivity {
 		}
 	}
 
-	private void updateSamplePoint(int itemID, SampleDatabaseHelper.Status status, String comment){
+	
+	protected void getSampleStatus(final int id) {
+		UpdateSampleDialog dialog = new UpdateSampleDialog(
+				this,
+				new UpdateSampleCallback(){
+					@Override
+					public void onTaskComplete(
+							SampleDatabaseHelper.Status status,
+							String comment) {
+						updateSamplePoint(id, status, comment);
+					}
+				});
+		dialog.show();
+		Log.d("click","[MainActivity] selected: "+id);
+	}
+	
+	
+	public void updateSamplePoint(int itemID, SampleDatabaseHelper.Status status, String comment){
 		UpdateSampleAsyncTask updater = new UpdateSampleAsyncTask(
 				getBaseContext(), mCurrentStudyName, 
 				itemID, status, comment, mRefreshCallback);
@@ -533,8 +541,7 @@ public class MainActivity extends FragmentActivity {
 						@Override
 						public boolean onMarkerClick(Marker m) {
 							int id = Integer.valueOf(m.getTitle());
-							UpdateSampleDialog.getUpdateSampleDialog(id).show();
-							Log.d("click","[MainActivity] selected: "+id);
+							getSampleStatus(id);
 							// consume the event (don't proceed to default action(s))
 							return true;
 						}});
@@ -628,8 +635,7 @@ public class MainActivity extends FragmentActivity {
 		}
 	}
 
-	
-	
+
 	/** A helper method to present narrative feedback to the user. All 
 	 * message use the same length (LONG).
 	 * @param message Narrative feedback to display

@@ -9,9 +9,11 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.west.bas.MainActivity;
 import com.west.bas.R;
 import com.west.bas.database.SampleDatabaseHelper.SampleInfo;
 import com.west.bas.database.SampleDatabaseHelper.Status;
+import com.west.bas.ui.UpdateSampleCallback;
 import com.west.bas.ui.UpdateSampleDialog;
 
 public class TableFragment extends ListFragment { 
@@ -48,9 +50,14 @@ public class TableFragment extends ListFragment {
 			Toast.makeText(getActivity().getBaseContext(), "Actions only available for samples", Toast.LENGTH_SHORT).show();
 			return;
 		}
-		int itemID = item.getInt(item.getColumnIndex(SampleInfo._ID));
+		final int itemID = item.getInt(item.getColumnIndex(SampleInfo._ID));
 		item.close();
-		UpdateSampleDialog.getUpdateSampleDialog(itemID).show();	
+		new UpdateSampleDialog(getActivity(),new UpdateSampleCallback(){
+
+			@Override
+			public void onTaskComplete(Status status, String comment) {
+				((MainActivity) getActivity()).updateSamplePoint(itemID,status,comment);
+			}}).show();	
 		Log.d("click","[TableFragment] selected: "+item);
 	}
 
