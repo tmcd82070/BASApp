@@ -273,11 +273,25 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 		}
 	}
 	
-	public String prettyPrint() {
+	public String allStudiesToString() {
 		String result = ""; 
+		result += SampleInfo.COLUMN_NAME_STUDY+","+
+				StudyInfo.COLUMN_NAME_SHAPEFILE+","+
+				StudyInfo.COLUMN_NAME_SEED_X+","+
+				StudyInfo.COLUMN_NAME_SEED_Y+","+
+				StudyInfo.COLUMN_NAME_AUTOREJECT+","+
+				SampleInfo._ID+","+
+				SampleInfo.COLUMN_NAME_NUMBER+","+
+				SampleInfo.COLUMN_NAME_TYPE+","+
+				SampleInfo.COLUMN_NAME_X+","+
+				SampleInfo.COLUMN_NAME_Y+","+
+				SampleInfo.COLUMN_NAME_STATUS+","+
+				SampleInfo.COLUMN_NAME_COMMENT+","+
+				SampleInfo.COLUMN_NAME_TIMESTAMP+"\n";
 		
 		Cursor studyCursor = mDatabase.rawQuery("SELECT * FROM "+StudyInfo.TABLE_NAME, null);
 		studyCursor.moveToFirst();
+	
 		while(studyCursor.getCount()>0 && !studyCursor.isAfterLast()){
 			int columnIndex = studyCursor.getColumnIndex(StudyInfo.COLUMN_NAME_STUDYNAME);
 			String studyName = studyCursor.getString(columnIndex);
@@ -288,19 +302,19 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 				String commentString = cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_COMMENT));
 				if(commentString==null) commentString = "[No comments]";
 				result +=
-						SampleInfo.COLUMN_NAME_STUDY+":"+cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STUDY))+","+
-						StudyInfo.COLUMN_NAME_SHAPEFILE+":"+studyCursor.getString(studyCursor.getColumnIndex(StudyInfo.COLUMN_NAME_SHAPEFILE))+","+
-						StudyInfo.COLUMN_NAME_SEED_X+":"+studyCursor.getFloat(studyCursor.getColumnIndex(StudyInfo.COLUMN_NAME_SEED_X))+","+
-						StudyInfo.COLUMN_NAME_SEED_Y+":"+studyCursor.getFloat(studyCursor.getColumnIndex(StudyInfo.COLUMN_NAME_SEED_Y))+","+
-						StudyInfo.COLUMN_NAME_AUTOREJECT+":"+studyCursor.getInt(studyCursor.getColumnIndex(StudyInfo.COLUMN_NAME_AUTOREJECT))+","+
-						SampleInfo._ID+":"+cursor.getInt(cursor.getColumnIndex(SampleInfo._ID))+","+
-						SampleInfo.COLUMN_NAME_NUMBER+":"+cursor.getInt(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_NUMBER))+","+
-						SampleInfo.COLUMN_NAME_TYPE+":"+cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_TYPE))+","+
-						SampleInfo.COLUMN_NAME_X+":"+cursor.getFloat(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_X))+","+
-						SampleInfo.COLUMN_NAME_Y+":"+cursor.getFloat(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_Y))+","+
-						SampleInfo.COLUMN_NAME_STATUS+":"+cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STATUS))+","+
-						SampleInfo.COLUMN_NAME_COMMENT+":"+commentString+","+
-						SampleInfo.COLUMN_NAME_TIMESTAMP+":"+cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_TIMESTAMP))+"\n";
+						cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STUDY))+","+
+						studyCursor.getString(studyCursor.getColumnIndex(StudyInfo.COLUMN_NAME_SHAPEFILE))+","+
+						studyCursor.getFloat(studyCursor.getColumnIndex(StudyInfo.COLUMN_NAME_SEED_X))+","+
+						studyCursor.getFloat(studyCursor.getColumnIndex(StudyInfo.COLUMN_NAME_SEED_Y))+","+
+						studyCursor.getInt(studyCursor.getColumnIndex(StudyInfo.COLUMN_NAME_AUTOREJECT))+","+
+						cursor.getInt(cursor.getColumnIndex(SampleInfo._ID))+","+
+						cursor.getInt(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_NUMBER))+","+
+						cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_TYPE))+","+
+						cursor.getFloat(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_X))+","+
+						cursor.getFloat(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_Y))+","+
+						cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STATUS))+","+
+						commentString+","+
+						cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_TIMESTAMP))+"\n";
 				cursor.moveToNext();
 			}
 			cursor.close();
@@ -309,10 +323,57 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 		studyCursor.close();
 		return result; 
 	}
+	
+	public String singleStudyToString(String studyName) {
+		String result = ""; 
+		
+		Cursor studyCursor = mDatabase.rawQuery("SELECT * FROM "+StudyInfo.TABLE_NAME+
+				" WHERE "+StudyInfo.COLUMN_NAME_STUDYNAME+"='"+studyName+"'", null);
+		studyCursor.moveToFirst();
+		
+		Cursor cursor = mDatabase.rawQuery("SELECT * FROM "+SampleInfo.TABLE_NAME+
+				" WHERE "+SampleInfo.COLUMN_NAME_STUDY+"='"+studyName+"'", null);
+		cursor.moveToFirst();
+		
+		result += SampleInfo.COLUMN_NAME_STUDY+","+
+				StudyInfo.COLUMN_NAME_SHAPEFILE+","+
+				StudyInfo.COLUMN_NAME_SEED_X+","+
+				StudyInfo.COLUMN_NAME_SEED_Y+","+
+				StudyInfo.COLUMN_NAME_AUTOREJECT+","+
+				SampleInfo._ID+","+
+				SampleInfo.COLUMN_NAME_NUMBER+","+
+				SampleInfo.COLUMN_NAME_TYPE+","+
+				SampleInfo.COLUMN_NAME_X+","+
+				SampleInfo.COLUMN_NAME_Y+","+
+				SampleInfo.COLUMN_NAME_STATUS+","+
+				SampleInfo.COLUMN_NAME_COMMENT+","+
+				SampleInfo.COLUMN_NAME_TIMESTAMP+"\n";
+		while(cursor.getCount()>0 && !cursor.isAfterLast()){
+			String commentString = cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_COMMENT));
+			if(commentString==null) commentString = "[No comments]";
+			result += cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STUDY))+","+
+					  studyCursor.getString(studyCursor.getColumnIndex(StudyInfo.COLUMN_NAME_SHAPEFILE))+","+
+					  studyCursor.getFloat(studyCursor.getColumnIndex(StudyInfo.COLUMN_NAME_SEED_X))+","+
+					  studyCursor.getFloat(studyCursor.getColumnIndex(StudyInfo.COLUMN_NAME_SEED_Y))+","+
+					  studyCursor.getInt(studyCursor.getColumnIndex(StudyInfo.COLUMN_NAME_AUTOREJECT))+","+
+					  cursor.getInt(cursor.getColumnIndex(SampleInfo._ID))+","+
+					  cursor.getInt(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_NUMBER))+","+
+					  cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_TYPE))+","+
+					  cursor.getFloat(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_X))+","+
+					  cursor.getFloat(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_Y))+","+
+					  cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STATUS))+","+
+					  commentString+","+
+					  cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_TIMESTAMP))+"\n";
+				cursor.moveToNext();
+		}
+		cursor.close();
+		studyCursor.close();
+		return result; 
+	}
 
 	// returns 0 if successful
 	public int makeSample(String studyName) {
-		Log.d("database",prettyPrint());
+		Log.d("database",allStudiesToString());
 		
 		String innerQuery = "SELECT "+SampleInfo._ID+" FROM "+SampleInfo.TABLE_NAME+
 				" WHERE "+SampleInfo.COLUMN_NAME_STATUS+"='"+
@@ -333,7 +394,7 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 	}
 
 	public int update(ContentValues values, int mSampleID) {
-		Log.d("database",prettyPrint());
+		Log.d("database",allStudiesToString());
 		values.put(SampleInfo.COLUMN_NAME_TIMESTAMP, format.format(new Date(System.currentTimeMillis())));
 		SQLiteDatabase writableDB = null;
 		try{

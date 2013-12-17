@@ -6,6 +6,7 @@ import com.west.bas.ui.RefreshCallback;
 import android.content.ContentValues;
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 
 /**
  * This class was implemented as an AsyncTask because of the
@@ -74,6 +75,7 @@ public class UpdateSampleAsyncTask  extends AsyncTask<Void, Void, Integer>{
 	
 	@Override
 	protected Integer doInBackground(Void... params) {
+		Log.d("Update","started update sample async task");
 		mDbHelper = new SampleDatabaseHelper(mContext);
 		ContentValues values = new ContentValues();
 		values.put(SampleInfo.COLUMN_NAME_STATUS, mStatus.toString());
@@ -104,7 +106,8 @@ public class UpdateSampleAsyncTask  extends AsyncTask<Void, Void, Integer>{
 			message = "Updated sample "+mSampleID;
 			break;
 		}
-		mRefreshCallback.onTaskComplete(message);
+		if(mRefreshCallback!=null) mRefreshCallback.onTaskComplete(message);
+		Log.d("Update","completed updated sample async task");
 	}
 	
 

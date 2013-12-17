@@ -44,7 +44,7 @@ public class ReadStudyAreaAsyncTask extends AsyncTask<Void, Void, StudyArea> {
 	
 	@Override
 	protected StudyArea doInBackground(Void... params) {
-		
+		Log.d("ReadStudy","started read study async task");
 		File studyAreaKML = new File(mFilename);
 		
 		//currently only handles KML files
@@ -82,6 +82,7 @@ public class ReadStudyAreaAsyncTask extends AsyncTask<Void, Void, StudyArea> {
 	@Override
 	public void onPostExecute(StudyArea studyArea){
 		if(mCallback!=null) mCallback.onTaskComplete(studyArea);
+		Log.d("ReadStudy","completed read study async task");
 	}
 
 }

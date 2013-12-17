@@ -1,7 +1,13 @@
 package com.west.bas.database;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.util.Log;
 
 // TODO accept a destination (string?  other...?) and write the database to it
@@ -19,19 +25,51 @@ import android.util.Log;
  */
 public class ExportDataAsyncTask extends AsyncTask<String, Void, Boolean> {
 	
-	SampleDatabaseHelper mDbHelper;
+	private SampleDatabaseHelper mDbHelper;
+	private String mFilename;
+	private boolean mExportAll;
+	private String mStudyName;
 	
-	public ExportDataAsyncTask(Context c){
+	public ExportDataAsyncTask(Context c, String filename, boolean b, String studyName){
 		mDbHelper = new SampleDatabaseHelper(c);
+		mFilename = filename;
+		mExportAll = b;
+		mStudyName = studyName;
 	}
 
 	@Override
 	protected Boolean doInBackground(String... params) {
-
-		Log.d("dbDump",mDbHelper.prettyPrint());
+		Log.d("Export","started export task");
 		
-		
-		return null;
+		File sdPath = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
+		BufferedWriter writer = null;
+		try {
+			writer = new BufferedWriter(new FileWriter(sdPath+"/"+mFilename));
+			if(mExportAll){
+				writer.append(mDbHelper.allStudiesToString());
+			}else{
+				writer.append(mDbHelper.singleStudyToString(mStudyName));
+			}
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}finally{
+			if(writer!=null){
+				try {
+					writer.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return true;
+	}
+	
+	@Override
+	public void onPostExecute(Boolean b){
+		Log.d("Export","completed export task");
 	}
 
 }

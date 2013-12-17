@@ -223,7 +223,7 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 		
 		mDbHelper.updateStudy(mStudyArea.getStudyName(), rejectedCount);
 		
-		Log.d("generate", mDbHelper.prettyPrint()); 
+		Log.d("generate", mDbHelper.allStudiesToString()); 
 		
 		return rejectedCount;
 	} 
@@ -238,7 +238,7 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 		}else{
 			// TODO record the number of rejected points?
 			Log.d("generate", "Number of rejected points: "+i);
-			Log.d("generate", mDbHelper.prettyPrint());
+			Log.d("generate", mDbHelper.allStudiesToString());
 			if(callback!=null) callback.onTaskComplete("Sample generated for "+mStudyArea.getStudyName());
 		}
 	}

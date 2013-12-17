@@ -36,6 +36,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.vividsolutions.jts.geom.Coordinate;
+import com.west.bas.database.ExportDataAsyncTask;
 import com.west.bas.database.SampleDatabaseHelper;
 import com.west.bas.database.SampleDatabaseHelper.SampleInfo;
 import com.west.bas.database.UpdateSampleAsyncTask;
@@ -249,12 +250,35 @@ public class MainActivity extends FragmentActivity {
 				task = null;
 			}
 		}
-		//TODO clean up on exit
-		// make sure all the cursors are closed
-		//http://stackoverflow.com/questions/18309958/activity-gets-crashed-with-fatal-signal-11-sigsegv-at-0x00000200-code-1
 		super.onPause();
 	}
 
+	@Override
+	protected void onDestroy(){
+		//TODO clean up on exit
+		// make sure all the cursors are closed
+		//http://stackoverflow.com/questions/18309958/activity-gets-crashed-with-fatal-signal-11-sigsegv-at-0x00000200-code-1
+		
+		// check that the cursor got closed (but should be maintained because of the use of swap()
+//		ListView tableListView = (ListView) this.getWindow().findViewById(android.R.id.list);
+//		if(tableListView!=null){
+//			DetailListAdapter adapter = (DetailListAdapter) tableListView.getAdapter();
+//			if(adapter!=null){
+//				Cursor c = adapter.getCursor();
+//				if(c!=null) c.close();
+//			}
+//		}
+		
+		// Also doesn't seem to be it... map is null.
+//		MapFragmentDual mapFragment = 
+//				(MapFragmentDual) ((TabPagerAdapter) mViewPager.getAdapter())
+//				.getItem(TabPagerAdapter.MAP_ITEM);
+//		if(mapFragment!=null && mapFragment.isGoogleMap()){
+//			GoogleMap map = mapFragment.getGoogleMap();
+//			if(map!=null) map.stopAnimation();
+//		}
+		super.onDestroy();
+	}
 
 	/** Specify the layout for the menu and inflate the menu 
 	 * items that it contains.  (Functionality is attached in
@@ -476,12 +500,14 @@ public class MainActivity extends FragmentActivity {
 		new ExportDialog(this, mCurrentStudyName, new ExportCallback(){
 			@Override
 			public void onTaskComplete(boolean exportAll, String exportFilename) {
-				displayToast("[MainActivity] Need to implement the export!");
-//				ExportAsyncTask();
+				writeData(exportAll,exportFilename);
 			}}).show();
-		
-		
-		
+	}
+	
+	private void writeData(boolean b, String filename){
+		ExportDataAsyncTask exporter = new ExportDataAsyncTask(this,filename,b,mCurrentStudyName);
+		taskList.add(exporter);
+		exporter.execute();
 	}
 	
 
