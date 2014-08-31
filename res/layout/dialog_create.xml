@@ -27,7 +27,8 @@
         android:layout_alignLeft="@id/textView_labelSampleName"
         android:layout_below="@id/textView_labelSampleName"
         android:ems="10"
-        android:hint="@string/hint_sampleName">
+        android:hint="@string/hint_sampleName"
+        android:imeOptions="actionNext">
 
         <requestFocus />
     </EditText>
@@ -70,7 +71,8 @@
         android:layout_below="@+id/textView_label_oversampleSize"
         android:ems="10"
         android:hint="@string/hint_oversampleSize"
-        android:inputType="number" />
+        android:inputType="number" 
+        android:imeOptions="actionDone"/>
 
     <TextView
         android:id="@+id/textView_labelStudyArea"

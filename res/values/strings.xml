@@ -8,7 +8,7 @@
     
     <string name="action_create">Create</string>
     <string name="action_load">Load</string>
-    <string name="action_export">Export to SD</string>
+    <string name="action_export">Export</string>
     
     <!-- UI display -->
     <string name="display_number">[Sample Number]</string>
@@ -61,6 +61,8 @@
     <color name="near_me">#FFFF33</color>
     <color name="warning">#CCCC00</color>
     <color name="disabled">#404040</color>
+    
+    <color name="project_fill">#2222AA80</color>
     
     <color name="collected">#ff33ff33</color>
     <color name="rejected">#ffff3333</color>

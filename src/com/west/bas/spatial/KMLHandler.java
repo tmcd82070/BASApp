@@ -132,10 +132,11 @@ public class KMLHandler extends DefaultHandler{
 		if(parent.lastElement()==KMLTag.coordinates){
 			// A temporary list into which to accumulate coordinates
 			String s = new String(ch, start, length);
-			String[] latLonAlt = s.split(",");
-			Coordinate[] coords = new Coordinate[latLonAlt.length/2+1];
-			for(int i=0, j=0;i<latLonAlt.length;i+=2,j++){
-				coords[j] = new Coordinate(Double.valueOf(latLonAlt[i]),Double.valueOf(latLonAlt[i+1]));
+			String[] latLonAlt = s.split("\n");
+			Coordinate[] coords = new Coordinate[latLonAlt.length+1];
+			for(int i=0;i<latLonAlt.length;i++){
+				String[] c = latLonAlt[i].split(",");
+				coords[i] = new Coordinate(Double.valueOf(c[0]),Double.valueOf(c[1]));
 			}
 			// make the coordinates into a linear ring
 			coords[coords.length-1]=coords[0];

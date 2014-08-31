@@ -581,11 +581,12 @@ public class MainActivity extends FragmentActivity {
 						// Instantiates a new Polygon object and adds points to define a rectangle
 						PolygonOptions polygonOptions = new PolygonOptions();
 						for(int i=0;i<coords.length;i++){
-							polygonOptions.add(new LatLng(coords[i].x, coords[i].y));
+							polygonOptions.add(new LatLng(coords[i].y, coords[i].x));
 						}
 						for(ArrayList<LatLng> hole : holes) polygonOptions.addHole(hole);
 						// Draw with transparent fill
-						polygonOptions.fillColor(android.R.color.transparent);
+						//polygonOptions.fillColor(android.R.color.transparent);
+						polygonOptions.fillColor(R.color.project_fill);
 						// Draw with red outline
 						polygonOptions.strokeColor(R.color.highlight);
 						// Add the polygon to the map and store a handle (to reuse the color settings)
@@ -593,7 +594,7 @@ public class MainActivity extends FragmentActivity {
 					}else{
 						ArrayList<LatLng> points = new ArrayList<LatLng>();
 						for(int i=0;i<coords.length;i++){
-							points.add(new LatLng(coords[i].x, coords[i].y));
+							points.add(new LatLng(coords[i].y, coords[i].x));
 						}
 						mStudyAreaPolygon.setPoints(points);
 						mStudyAreaPolygon.setHoles(holes);

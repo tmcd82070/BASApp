@@ -8,14 +8,17 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.west.bas.R;
 
 public class MapFragmentDual extends SupportMapFragment { 
 	
 	private static boolean sIsGoogleMap = false;
-	private GoogleMap mMap;
+	private static GoogleMap sMap;
 	
 	public View onCreateView(LayoutInflater inflater, ViewGroup viewGroup, Bundle savedInstanceState) { 
 		int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this.getActivity().getBaseContext());
@@ -46,11 +49,17 @@ public class MapFragmentDual extends SupportMapFragment {
 	public void onActivityCreated(Bundle savedInstanceState){
 		super.onActivityCreated(savedInstanceState);
 //		/http://stackoverflow.com/questions/14047257/how-do-i-know-the-map-is-ready-to-get-used-when-using-the-supportmapfragment
-		mMap=getMap();
+		sMap=getMap();
+		
+		 LatLngBounds wy = new LatLngBounds(
+		  new LatLng(41, -111.05), new LatLng(45, -104.05));
+
+		sMap.moveCamera(CameraUpdateFactory.newLatLngZoom(wy.getCenter(), 5));
+		//mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(wy, 0));
 	}
 
 	public GoogleMap getGoogleMap() {
-		return mMap;
+		return sMap;
 	}
 
 	

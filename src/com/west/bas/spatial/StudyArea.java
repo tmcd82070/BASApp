@@ -84,7 +84,7 @@ public class StudyArea {
 	
 	public LatLng getCenterLatLng(){
 		Point center = studyAreaPolygon_sp.getCentroid();
-		return new LatLng(center.getX(), center.getY());
+		return new LatLng(center.getY(), center.getX());
 	}
 
 	public int estimateNumPointsNeeded(int nPointsInSample){
