@@ -81,7 +81,7 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 		callback = refreshCallback;
 		
 		// Connect to the database where the samples will be stored
-		mDbHelper = new SampleDatabaseHelper(c);
+		mDbHelper = SampleDatabaseHelper.getInstance(c);
 		
 		if(sRand == null) sRand = new Random(); 
 		
@@ -195,10 +195,15 @@ public class GenerateSample extends AsyncTask<Void, Void, Integer> {
 		// Create an entry in the study table (couldn't do it 
 		// earlier because seeds weren't known yet, but are
 		// required in the table).
-		mDbHelper.addStudy(
-				mStudyArea.getStudyName(),
-				mStudyArea.getFilename(),
-				seedX,seedY);
+		long result = mDbHelper.addStudy(mStudyArea.getStudyName(),
+										 mStudyArea.getFilename(),
+										 seedX,seedY);
+		if(result<0){
+			Log.e("Generate","Error adding the study to the database: "+
+				mStudyArea.getStudyName()+
+				", seedX:"+seedX+
+				", seedY: "+seedY);
+		}
 		
 		float[] coords = null;
 		

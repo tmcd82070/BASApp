@@ -123,9 +123,6 @@ public class MainActivity extends FragmentActivity {
 	 * the database. **/
 	protected StudyArea mCurrentStudyArea;
 	
-	/** The GoogleMaps polygon that represents the study area */
-	private Polygon mStudyAreaPolygon;
-	
 	private RefreshCallback mRefreshCallback = new RefreshCallback(){
 		@Override
 		public void onTaskComplete(String message) {
@@ -448,7 +445,7 @@ public class MainActivity extends FragmentActivity {
 		// populate the spinner with the names of tables available in the database
 		final Spinner spinner = (Spinner) layout
 				.findViewById(R.id.spinner_sampleNames);
-		SampleDatabaseHelper db = new SampleDatabaseHelper(getBaseContext());
+		SampleDatabaseHelper db = SampleDatabaseHelper.getInstance(getBaseContext());
 		ArrayList<String> studies = db.getListOfStudies();
 		if (studies == null)
 			studies = new ArrayList<String>(1);
@@ -527,7 +524,7 @@ public class MainActivity extends FragmentActivity {
 	 */
 	private void refreshMainDisplays(){
 		if(mCurrentStudyName!=null && !mCurrentStudyName.isEmpty()){
-			SampleDatabaseHelper db = new SampleDatabaseHelper(getBaseContext());
+			SampleDatabaseHelper db = SampleDatabaseHelper.getInstance(getBaseContext());
 			
 			// Determine whether or not the study has been retrieved from the database
 			// if not, read in the study details (then try again)
@@ -577,28 +574,21 @@ public class MainActivity extends FragmentActivity {
 					// draw the study area bounds on the map
 					Coordinate[] coords = mCurrentStudyArea.getBoundaryPoints();
 					ArrayList<ArrayList<LatLng>> holes = mCurrentStudyArea.getHoles();
-					if(mStudyAreaPolygon==null){
-						// Instantiates a new Polygon object and adds points to define a rectangle
-						PolygonOptions polygonOptions = new PolygonOptions();
-						for(int i=0;i<coords.length;i++){
-							polygonOptions.add(new LatLng(coords[i].y, coords[i].x));
-						}
-						for(ArrayList<LatLng> hole : holes) polygonOptions.addHole(hole);
-						// Draw with transparent fill
-						//polygonOptions.fillColor(android.R.color.transparent);
-						polygonOptions.fillColor(R.color.project_fill);
-						// Draw with red outline
-						polygonOptions.strokeColor(R.color.highlight);
-						// Add the polygon to the map and store a handle (to reuse the color settings)
-						mStudyAreaPolygon = map.addPolygon(polygonOptions);
-					}else{
-						ArrayList<LatLng> points = new ArrayList<LatLng>();
-						for(int i=0;i<coords.length;i++){
-							points.add(new LatLng(coords[i].y, coords[i].x));
-						}
-						mStudyAreaPolygon.setPoints(points);
-						mStudyAreaPolygon.setHoles(holes);
+					
+					// Instantiates a new Polygon object and adds it to the map
+					PolygonOptions polygonOptions = new PolygonOptions();
+					for(int i=0;i<coords.length;i++){
+						polygonOptions.add(new LatLng(coords[i].y, coords[i].x));
 					}
+					for(ArrayList<LatLng> hole : holes) polygonOptions.addHole(hole);
+					// Draw with transparent fill
+					//polygonOptions.fillColor(android.R.color.transparent);
+					polygonOptions.fillColor(0x802222AA);//R.color.project_fill);
+					// Draw with red outline
+					polygonOptions.strokeColor(0xFF2222AA);//R.color.highlight);
+					polygonOptions.strokeWidth(1);
+					// Add the polygon to the map and store a handle (to reuse the color settings)
+					map.addPolygon(polygonOptions);
 					
 					// draw the sample points on the map
 					cursor.moveToFirst();

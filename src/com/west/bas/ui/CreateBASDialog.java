@@ -106,7 +106,7 @@ public class CreateBASDialog extends AlertDialog{
 				(EditText) layout.findViewById(R.id.editText_sampleName);
 		// Get a list of studies from the database
 		// (check against the list when the user enters a name)
-		SampleDatabaseHelper db = new SampleDatabaseHelper(context);
+		SampleDatabaseHelper db = SampleDatabaseHelper.getInstance(context);
 		final ArrayList<String> studyList = db.getListOfStudies();
 		studyNameTxt.setOnFocusChangeListener(new OnFocusChangeListener(){
 			@Override

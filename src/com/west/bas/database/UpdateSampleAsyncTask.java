@@ -76,7 +76,7 @@ public class UpdateSampleAsyncTask  extends AsyncTask<Void, Void, Integer>{
 	@Override
 	protected Integer doInBackground(Void... params) {
 		Log.d("Update","started update sample async task");
-		mDbHelper = new SampleDatabaseHelper(mContext);
+		mDbHelper = SampleDatabaseHelper.getInstance(mContext);
 		ContentValues values = new ContentValues();
 		values.put(SampleInfo.COLUMN_NAME_STATUS, mStatus.toString());
 		values.put(SampleInfo.COLUMN_NAME_COMMENT, mComment);

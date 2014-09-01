@@ -26,6 +26,7 @@
         android:layout_height="wrap_content"
         android:layout_alignLeft="@id/textView_labelSampleName"
         android:layout_below="@id/textView_labelSampleName"
+        android:singleLine="true"
         android:ems="10"
         android:hint="@string/hint_sampleName"
         android:imeOptions="actionNext">

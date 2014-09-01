@@ -31,7 +31,7 @@ public class ExportDataAsyncTask extends AsyncTask<String, Void, Boolean> {
 	private String mStudyName;
 	
 	public ExportDataAsyncTask(Context c, String filename, boolean b, String studyName){
-		mDbHelper = new SampleDatabaseHelper(c);
+		mDbHelper = SampleDatabaseHelper.getInstance(c);
 		mFilename = filename;
 		mExportAll = b;
 		mStudyName = studyName;

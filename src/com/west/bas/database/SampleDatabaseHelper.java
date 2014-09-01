@@ -24,7 +24,7 @@ import android.util.Log;
  * West EcoSystems Technologies, Inc (2013)
  */
 public class SampleDatabaseHelper extends SQLiteOpenHelper {
-
+	
 	/** 
 	 * Each generated point is labeled as either a necessary collection point 
 	 * (SAMPLE) or is provided as an alternative to a necessary point that gets 
@@ -39,7 +39,7 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 	}
 	
 	/**
-	 * Four mutually exclusive status classification describe the state of 
+	 * Four mutually exclusive status classifications describe the state of 
 	 * each point.  Initially all points are either SAMPLE or OVERSAMPLE
 	 * (which matches the SampleType).  Any point marked COMPLETE has been
 	 * visited and data has been collected.  As collection occurs, some points may
@@ -70,16 +70,6 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 		}
 	}	
 	
-	
-	// V1: initial implementation
-	// V2: updated to include time stamp when creating an entry
-	// V3: created a field to indicate which study each point is associated with
-	// V4: added a field to store the name of the shapefile
-	// V5: created a second table to hold study information
-	public static final int DATABASE_VERSION = 5;
-	public static final String DATABASE_NAME = "BAS.db";
-	
-	private SQLiteDatabase mDatabase;
 	
 	/** Data types in the sample and study data **/
 	private static final String DATA_INT = " INTEGER";
@@ -141,10 +131,30 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 	private static final String DELETE_TABLE_STUDIES = 
 			"DROP TABLE IF EXISTS "+StudyInfo.TABLE_NAME;
 
-	public SampleDatabaseHelper(Context context) {
+	// V1: initial implementation
+	// V2: updated to include time stamp when creating an entry
+	// V3: created a field to indicate which study each point is associated with
+	// V4: added a field to store the name of the shapefile
+	// V5: created a second table to hold study information
+	public static final int DATABASE_VERSION = 5;
+	public static final String DATABASE_NAME = "BAS.db";
+	
+	private SQLiteDatabase mDatabase;
+	
+	/* ensure that the database helper is a singleton */
+	private static SampleDatabaseHelper sDBHelper;
+	private SampleDatabaseHelper(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
 		mDatabase = getWritableDatabase();
 	}
+	public static SampleDatabaseHelper getInstance(Context context){
+		if(sDBHelper==null){
+			sDBHelper = new SampleDatabaseHelper(context.getApplicationContext());
+		}
+		return sDBHelper;
+	}
+	
+
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
@@ -289,9 +299,13 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 				SampleInfo.COLUMN_NAME_COMMENT+","+
 				SampleInfo.COLUMN_NAME_TIMESTAMP+"\n";
 		
+		if(!mDatabase.isOpen()){
+			
+		}
+		
 		Cursor studyCursor = mDatabase.rawQuery("SELECT * FROM "+StudyInfo.TABLE_NAME, null);
 		studyCursor.moveToFirst();
-	
+		
 		while(studyCursor.getCount()>0 && !studyCursor.isAfterLast()){
 			int columnIndex = studyCursor.getColumnIndex(StudyInfo.COLUMN_NAME_STUDYNAME);
 			String studyName = studyCursor.getString(columnIndex);
@@ -323,6 +337,7 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 		studyCursor.close();
 		return result; 
 	}
+
 	
 	public String singleStudyToString(String studyName) {
 		String result = ""; 
@@ -396,16 +411,12 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 	public int update(ContentValues values, int mSampleID) {
 		Log.d("database",allStudiesToString());
 		values.put(SampleInfo.COLUMN_NAME_TIMESTAMP, format.format(new Date(System.currentTimeMillis())));
-		SQLiteDatabase writableDB = null;
 		try{
-			writableDB = getWritableDatabase();
-			writableDB.update(SampleInfo.TABLE_NAME, values, 
+			mDatabase.update(SampleInfo.TABLE_NAME, values, 
 					"_ID='"+mSampleID+"'",null);
 		}catch(SQLiteException e){
 			Log.d("database","Error getting writable database for update");
 			return UpdateSampleAsyncTask.UPDATE_ERROR;
-		}finally{
-			if(writableDB!=null) writableDB.close();
 		}
 		return UpdateSampleAsyncTask.SUCCESS;
 	}
