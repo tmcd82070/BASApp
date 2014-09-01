@@ -52,9 +52,10 @@ public class StudyArea {
 	}
 
 	public Coordinate[] getBoundaryPoints(){
-		return studyAreaPolygon_sp.getBoundary().getCoordinates();
+		return studyAreaPolygon_sp.getExteriorRing().getCoordinates();
 	}
 
+	/** coordinates returned as y,x for plotting on gmap */
 	public ArrayList<ArrayList<LatLng>> getHoles() {
 		int nHoles = studyAreaPolygon_sp.getNumInteriorRing();
 		ArrayList<ArrayList<LatLng>> holes = new ArrayList<ArrayList<LatLng>>();
@@ -62,7 +63,7 @@ public class StudyArea {
 			ArrayList<LatLng> hole = new ArrayList<LatLng>();
 			Coordinate[] points = studyAreaPolygon_sp.getInteriorRingN(i).getCoordinates();
 			for(int j=0;j<points.length;j++){
-				hole.add(new LatLng(points[j].x,points[j].y));
+				hole.add(new LatLng(points[j].y,points[j].x));
 			}
 			holes.add(hole);
 		}

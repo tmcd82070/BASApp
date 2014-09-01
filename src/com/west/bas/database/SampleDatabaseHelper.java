@@ -3,6 +3,7 @@ package com.west.bas.database;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Locale;
 
 import android.content.ContentValues;
@@ -277,6 +278,8 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 					result.add(cursor.getString(columnIndex));
 				}
 			}
+			// present the study in alphabetical order
+			Collections.sort(result);
 			return result;
 		}finally{
 			if(cursor!=null) cursor.close();
