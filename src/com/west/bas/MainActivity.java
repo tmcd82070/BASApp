@@ -31,6 +31,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
@@ -563,13 +564,23 @@ public class MainActivity extends FragmentActivity {
 					map.setOnMarkerClickListener(new OnMarkerClickListener(){
 						@Override
 						public boolean onMarkerClick(Marker m) {
+							// TODO check and only update if it is sample point (give toast otherwise)
+							// use the title and the id attributes?
 							int id = Integer.valueOf(m.getTitle());
 							getSampleStatus(id);
 							// consume the event (don't proceed to default action(s))
 							return true;
 						}});
 
-					map.moveCamera(CameraUpdateFactory.newLatLng(mCurrentStudyArea.getCenterLatLng()));
+					// keep the same zoom level but recenter the display (could clip or be too small)
+					//map.moveCamera(CameraUpdateFactory.newLatLng(mCurrentStudyArea.getCenterLatLng()));
+					
+					double[] bb = mCurrentStudyArea.getBB();
+					
+					LatLngBounds s = new LatLngBounds(
+							  new LatLng(bb[1], bb[0]), new LatLng(bb[3], bb[2]));
+
+					map.moveCamera(CameraUpdateFactory.newLatLngBounds(s, 0));
 					
 					// draw the study area bounds on the map
 					Coordinate[] coords = mCurrentStudyArea.getBoundaryPoints();
@@ -616,7 +627,8 @@ public class MainActivity extends FragmentActivity {
 							marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_collected)); 
 							break;
 						}
-						map.addMarker(marker);
+						Marker m = map.addMarker(marker);
+						//m.set('isEditable',true);
 						Log.d("checkPoints","x: "+x+" y: "+y+", "+typeLabel);
 						cursor.moveToNext();
 					}

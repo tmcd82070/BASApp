@@ -88,6 +88,18 @@ public class StudyArea {
 		return new LatLng(center.getY(), center.getX());
 	}
 
+	public double[] getBB(){
+		Coordinate[] coords = studyAreaPolygon_sp.getEnvelope().getCoordinates();
+		double[] bb = new double[]{coords[0].x,coords[0].y,coords[0].x,coords[0].y};
+		for(int i=1;i<coords.length;i++){
+			if(coords[i].x<bb[0]) bb[0]=coords[i].x;
+			else if(coords[i].x>bb[2]) bb[2]=coords[i].x;
+			if(coords[i].y<bb[1]) bb[1]=coords[i].y;
+			else if(coords[i].y>bb[3]) bb[3]=coords[i].y;
+		}
+		
+		return bb;
+	}
 	public int estimateNumPointsNeeded(int nPointsInSample){
 		Geometry boundingBox = studyAreaPolygon_sp.getEnvelope();
 		return (int)((float)(nPointsInSample) * (boundingBox.getArea() / studyAreaPolygon_sp.getArea())); 
