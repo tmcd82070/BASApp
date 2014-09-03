@@ -3,13 +3,13 @@ package com.west.bas.ui.table;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.v4.widget.SimpleCursorAdapter;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.west.bas.R;
 import com.west.bas.database.SampleDatabaseHelper.SampleInfo;
 import com.west.bas.database.SampleDatabaseHelper.Status;
+import com.west.bas.spatial.LastKnownLocation;
 
 public class DetailListAdapter extends SimpleCursorAdapter{
 	
@@ -25,8 +25,9 @@ public class DetailListAdapter extends SimpleCursorAdapter{
 		super.bindView(view, c, cursor);
 		double x = cursor.getDouble(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_X));
 		double y = cursor.getDouble(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_Y));
-		Log.d("details","determine if the user is close to the point: "+x+","+y+" (gps "+gpsX+","+gpsY+")");
-//		if(x<1) view.setBackgroundColor(view.getResources().getColor(R.color.near_me));
+		
+		if(LastKnownLocation.isNear(x,y)) view.setBackgroundColor(view.getResources().getColor(R.color.near_me));
+		//TODO needs an else?  so that reuse doesn't incorrectly highlight rows?
 	}
 	
 	public View getView(int position, View convertView, ViewGroup parent){

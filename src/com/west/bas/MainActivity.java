@@ -34,7 +34,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.west.bas.database.ExportDataAsyncTask;
@@ -50,6 +49,8 @@ import com.west.bas.ui.CreateBASCallback;
 import com.west.bas.ui.CreateBASDialog;
 import com.west.bas.ui.ExportCallback;
 import com.west.bas.ui.ExportDialog;
+import com.west.bas.ui.PrivacyPolicyCallback;
+import com.west.bas.ui.PrivacyPolicyDialog;
 import com.west.bas.ui.RefreshCallback;
 import com.west.bas.ui.TabPagerAdapter;
 import com.west.bas.ui.UpdateSampleCallback;
@@ -159,6 +160,20 @@ public class MainActivity extends FragmentActivity {
 		// refresh the two displays
 		refreshMainDisplays();
 
+		AlertDialog dialog = new PrivacyPolicyDialog(
+				this, 
+				new PrivacyPolicyCallback(){
+					@Override
+					public void onTaskComplete(
+							boolean hasAcceptedPrivacyPolicy,
+							boolean hasProvidedConsentToLocation) {
+						displayToast("Privacy: "+hasAcceptedPrivacyPolicy);
+						displayToast("GPS: "+hasProvidedConsentToLocation);
+						
+						// call the refresh here?  is that what initializes the map?
+					}});
+		dialog.show();	
+		
 	}
 
 

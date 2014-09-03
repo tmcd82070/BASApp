@@ -424,6 +424,12 @@ public class SampleDatabaseHelper extends SQLiteOpenHelper {
 		return UpdateSampleAsyncTask.SUCCESS;
 	}
 
+	//TODO fill in the functionality to delete a study (should be called only after prompted to export the study)
+	public int delete(String studyName){
+		Log.d("NEW FUNCTION","Delete a named study from the database");
+		return UpdateSampleAsyncTask.SUCCESS;
+	}
+	
 	/** Strip any characters that are not alphanumeric, 
 	 * underscore, space, or period.
 	 * @param raw string that is raw user input
