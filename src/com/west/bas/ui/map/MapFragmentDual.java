@@ -191,16 +191,20 @@ public class MapFragmentDual extends SupportMapFragment {
 						.draggable(false);
 				switch(SampleDatabaseHelper.Status.getValueFromString(typeLabel)){
 				case SAMPLE: 
-					marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_sample)); 
+					if(LastKnownLocation.isNear(x,y)) marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_samplenearby));
+					else marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_sample)); 
 					break;
 				case OVERSAMPLE: 
-					marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_oversample)); 
+					if(LastKnownLocation.isNear(x,y)) marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_oversamplenearby));
+					else marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_oversample)); 
 					break;
 				case REJECT: 
-					marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_reject)); 
+					if(LastKnownLocation.isNear(x,y)) marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_rejectnearby));
+					else marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_reject)); 
 					break;
 				case COLLECTED: 
-					marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_collected)); 
+					if(LastKnownLocation.isNear(x,y)) marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_collectednearby));
+					else marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_collected)); 
 					break;
 				}
 				sMap.addMarker(marker);

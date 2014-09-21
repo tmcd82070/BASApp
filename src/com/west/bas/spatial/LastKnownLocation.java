@@ -1,15 +1,14 @@
 package com.west.bas.spatial;
 
-import com.google.android.gms.maps.model.LatLng;
-import com.west.bas.ui.RefreshCallback;
-import com.west.bas.ui.map.MapFragmentDual;
-
 import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.util.Log;
+
+import com.google.android.gms.maps.model.LatLng;
+import com.west.bas.ui.RefreshCallback;
+import com.west.bas.ui.map.MapFragmentDual;
 
 public class LastKnownLocation {
 
@@ -57,8 +56,7 @@ public class LastKnownLocation {
 		if(!sHasUserConsent) return false;
 		
 		if(sLocation==null) return false;
-		Log.d("details","determine if the user is close to the point: "+x+","+y+" (gps "+sLocation.getLongitude()+","+sLocation.getLatitude()+")");
-		
+
 		Location sampleLoc = new Location(sLocation);
 		sampleLoc.setLongitude(x);
 		sampleLoc.setLatitude(y);

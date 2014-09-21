@@ -18,13 +18,6 @@ public class DetailListAdapter extends SimpleCursorAdapter{
 	public DetailListAdapter(Context c, int layout, Cursor cursor, String[] from, int[] to, int flags){
 		super(c, layout, cursor, from, to, flags);
 	}
-
-	@Override
-	public void bindView(View view, Context c, Cursor cursor) {
-		super.bindView(view, c, cursor);
-		double x = cursor.getDouble(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_X));
-		double y = cursor.getDouble(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_Y));
-	}
 	
 	public View getView(int position, View convertView, ViewGroup parent){
 		View view = super.getView(position, convertView, parent);

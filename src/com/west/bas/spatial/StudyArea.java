@@ -124,40 +124,6 @@ public class StudyArea {
 		return null;
 	}
 	
-	// used in drawing (not updated)
-//	public void scaleToFit(int screenWidth, int screenHeight) {
-//		
-//		// Create a transformation matrix
-//		mTransform = new Matrix();
-//		
-//		// Scale the study area as needed
-//		float scale = screenWidth/mBB.width();
-//		if(mBB.height()*scale>screenHeight){
-//			scale = (float) (screenHeight/mBB.height());
-//		}
-//		// just smaller than the size of the screen
-//		scale*=0.9;
-//		mTransform.preScale(scale, scale);
-//		
-//		// position in the center of the screen
-//		mTransform.preTranslate(
-//				(screenWidth-mBB.width()*scale)/2, 
-//				(screenHeight-mBB.height()*scale)/2);
-//		
-//		
-//		Log.d("scale","window width: "+screenWidth+", height: "+screenHeight);
-//		Log.d("scale","bounding box: "+mBB.width()+", "+mBB.height());
-//		Log.d("scale","scale: "+scale);
-//		Log.d("scale","scaled box: "+mBB.width()*scale+", "+mBB.height()*scale);
-//		
-//		mAdjustedBB = new RectF();
-//		mTransform.mapRect(mAdjustedBB,mBB);
-//		
-//		mAdjustedStudyAreaPolygon = new Path();
-//		mAdjustedStudyAreaPolygon.set(studyAreaPolygon);
-//		mAdjustedStudyAreaPolygon.transform(mTransform);
-//	}
-//
 	// TODO update (not revised to use spatial polygon as study area))
 	public android.graphics.Point transformToScreen(float ptX, float ptY) {
 		float[] coords = new float[]{ptX, ptY};
