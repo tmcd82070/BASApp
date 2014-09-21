@@ -26,21 +26,11 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolygonOptions;
-import com.vividsolutions.jts.geom.Coordinate;
 import com.west.bas.database.ExportDataAsyncTask;
 import com.west.bas.database.SampleDatabaseHelper;
-import com.west.bas.database.SampleDatabaseHelper.SampleInfo;
 import com.west.bas.database.UpdateSampleAsyncTask;
 import com.west.bas.sample.GenerateSample;
+import com.west.bas.spatial.LastKnownLocation;
 import com.west.bas.spatial.ReadStudyAreaAsyncTask;
 import com.west.bas.spatial.ReadStudyAreaCallback;
 import com.west.bas.spatial.StudyArea;
@@ -53,10 +43,7 @@ import com.west.bas.ui.PrivacyPolicyCallback;
 import com.west.bas.ui.PrivacyPolicyDialog;
 import com.west.bas.ui.RefreshCallback;
 import com.west.bas.ui.TabPagerAdapter;
-import com.west.bas.ui.UpdateSampleCallback;
-import com.west.bas.ui.UpdateSampleDialog;
 import com.west.bas.ui.map.MapFragmentDual;
-import com.west.bas.ui.map.MapViewDraw;
 import com.west.bas.ui.table.DetailListAdapter;
 
 /**
@@ -103,37 +90,15 @@ public class MainActivity extends FragmentActivity {
 	 * two displays: table and map. **/
 	protected ActionBar mActionBar;
 
-	/** The (database safe) name of the study currently displayed **/
-	protected String mCurrentStudyName;
+	/** The name of the current study (selected by the user or recalled from saved state) */
+	private String mStudyName = null;
 	
-	/** Temporary storage space for the number of samples to generate.  
-	 * These values are stored as part of the activity while the study
-	 * area KML file is read.  If successful, these values are used to
-	 * create a new entry in the studies table of the database; if not,
-	 * these values are discarded. **/
-	protected int mCurrentStudySamples;
-	
-	/** Temporary storage space for the number of over samples to generate. 
-	 * @see #mCurrentStudySamples */
-	protected int mCurrentStudyOversamples;
-	
-	/** A StudyArea object that contains the details of the study 
-	 * that is currently displayed.  This object is used to store 
-	 * details pulled from the database an used to refresh the display.
-	 * There is the potential for the object to get out of sync with
-	 * the current database contents; reduces the number of calls to
-	 * the database. **/
-	protected StudyArea mCurrentStudyArea;
-	
-	private RefreshCallback mRefreshCallback = new RefreshCallback(){
-		@Override
-		public void onTaskComplete(String message) {
-			refreshMainDisplays();
-			displayToast(message);
-		}
-	};
-	
+	/** The tab that is 'selected' (by the user or recalled from saved state) */
+	private int mCurrentTab = TabPagerAdapter.MAP_ITEM;
+
+	/** A list of async tasks that can be cleaned up on close or pause */
 	private Vector<AsyncTask<?,?,?>> taskList = new Vector<AsyncTask<?,?,?>>();
+	
 	
 	/** Initialize the two layouts (table and map).  When the application 
 	 * reopens, it reinstates the previous configuration, which includes
@@ -142,24 +107,29 @@ public class MainActivity extends FragmentActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		ColorHelper.init(this);
-		
-		initInteraction(savedInstanceState);
-		
 		// restore previous state
 		if (savedInstanceState != null) {
-			int currentTab = savedInstanceState.getInt("tab", TabPagerAdapter.MAP_ITEM);
-			mCurrentStudyName = savedInstanceState.getString("study");
-			mActionBar.setSelectedNavigationItem(currentTab);
-			mViewPager.setCurrentItem(currentTab);
-		} else {
-			mActionBar.setSelectedNavigationItem(TabPagerAdapter.MAP_ITEM);
-			mViewPager.setCurrentItem(TabPagerAdapter.MAP_ITEM);
+			// the name of the study displayed
+			mStudyName = savedInstanceState.getString("study");
+			String studyAreaFilename = SampleDatabaseHelper.getInstance(this).getSHPFilename(mStudyName);
+			if(studyAreaFilename != null){
+				// Try to read the study area KML file 
+				ReadStudyAreaAsyncTask reader = new ReadStudyAreaAsyncTask(
+						studyAreaFilename, 
+						mStudyName,
+						new ReadStudyAreaCallback() {
+							@Override
+							public void onTaskComplete(StudyArea studyArea) {
+								if(studyArea==null)	clearCurrentStudyDetails();
+							}
+						});
+				taskList.add(reader);
+				reader.execute();
+			}
+			// Which tab is displayed (map or table)
+			mCurrentTab = savedInstanceState.getInt("tab", TabPagerAdapter.MAP_ITEM);
 		}
 		
-		// refresh the two displays
-		refreshMainDisplays();
-
 		AlertDialog dialog = new PrivacyPolicyDialog(
 				this, 
 				new PrivacyPolicyCallback(){
@@ -167,26 +137,43 @@ public class MainActivity extends FragmentActivity {
 					public void onTaskComplete(
 							boolean hasAcceptedPrivacyPolicy,
 							boolean hasProvidedConsentToLocation) {
-						displayToast("Privacy: "+hasAcceptedPrivacyPolicy);
-						displayToast("GPS: "+hasProvidedConsentToLocation);
-						
-						// call the refresh here?  is that what initializes the map?
+						setUserConsent(hasAcceptedPrivacyPolicy, hasProvidedConsentToLocation);
 					}});
 		dialog.show();	
-		
 	}
 
+	/** Store the view that was active and the study that is displayed 
+	 * so that it can be automatically loaded when the application reopens. */
+	protected void onSaveInstanceState(Bundle outState) {
+		outState.putInt("tab", getActionBar().getSelectedNavigationIndex());
+		outState.putString("study", mStudyName);
+		super.onSaveInstanceState(outState);
+	}
 
-	/** Set up the main layout with two views: a map and a table
-	 * The user navigates between these views using either a swipe
-	 * gesture or by selecting the respective tabs. Although used just 
-	 * once (during onCreate()), it organizes the code by containing 
-	 * all of the widget initialization, e.g., connecting to the 
-	 * widgets in the XML layout (excluding the menu).
-	 * @see #onCreate(Bundle)
-	 * @see #onCreateOptionsMenu(Menu)
+	
+	/** When a response from the user has been received regarding agreement
+	 * with the Google Maps terms and conditions and whether or not they
+	 * consent to having their location accessed and plotted on the map, set 
+	 * the application state and initialize the UI, or exit if declined.
+	 * 
+	 * @param hasAcceptedPrivacyPolicy
+	 * @param hasProvidedConsentToLocation
 	 */
-	private void initInteraction(Bundle savedInstanceState) {
+	protected void setUserConsent(
+			boolean hasAcceptedPrivacyPolicy, 
+			boolean hasProvidedConsentToLocation) {
+		
+		// Currently acts as if the map is critical to the application
+		// if the user does not accept the policy, quit the application
+		if(!hasAcceptedPrivacyPolicy){
+			finish();
+            System.exit(0);
+		}
+		
+		// provide the activity context to get the color resources
+		ColorHelper.init(this);
+		
+		// initialize the UI
 		setContentView(R.layout.activity_main);
 		TabPagerAdapter mTabAdapter = new TabPagerAdapter(getSupportFragmentManager());
 		mViewPager = (ViewPager) findViewById(R.id.pager_tabLayout);
@@ -231,22 +218,22 @@ public class MainActivity extends FragmentActivity {
 				.setText(getString(R.string.label_table))
 				.setTabListener(tabListener));
 		
-		if(savedInstanceState != null) { 
-			int currentTab = savedInstanceState.getInt("tab", 0); 
-			mActionBar.setSelectedNavigationItem(currentTab); 
-			mViewPager.setCurrentItem(currentTab); 
-		} else { 
-			mActionBar.setSelectedNavigationItem(0); 
-			mViewPager.setCurrentItem(0); 
-		} 
-	}
-
-	/** Store the view that was active and the study that is displayed 
-	 * so that it can be automatically loaded when the application reopens. */
-	protected void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		outState.putInt("tab", getActionBar().getSelectedNavigationIndex());
-		outState.putString("study", mCurrentStudyName);
+		// At this point, the user accepted the terms. Set whether or not
+		// the user gave consent to access and map their location and provide 
+		// feedback to confirm their selection.
+		String message = "Privacy policy accepted.\nGPS location will ";
+		if(hasProvidedConsentToLocation){
+			LastKnownLocation.giveUserConsent(this.getApplicationContext());
+		}else{
+			message += "NOT ";
+		}
+		message += "be shown.";
+		displayToast(message);
+		
+		// Update the displays if there was saved state (which study and which view)
+		refreshDisplays();
+		mActionBar.setSelectedNavigationItem(mCurrentTab); 
+		mViewPager.setCurrentItem(mCurrentTab); 
 	}
 	
 	/** Clean up any sub-tasks and store state and data that may 
@@ -255,6 +242,7 @@ public class MainActivity extends FragmentActivity {
 	@Override
 	protected void onPause(){
 		for(AsyncTask<?,?,?> task : taskList){
+			// TODO  !(task instanceof GenerateSample)
 			if(task!=null){
 				Status status = task.getStatus();
 				if(status==Status.RUNNING){
@@ -286,7 +274,7 @@ public class MainActivity extends FragmentActivity {
 //		MapFragmentDual mapFragment = 
 //				(MapFragmentDual) ((TabPagerAdapter) mViewPager.getAdapter())
 //				.getItem(TabPagerAdapter.MAP_ITEM);
-//		if(mapFragment!=null && mapFragment.isGoogleMap()){
+//		if(mapFragment!=null){
 //			GoogleMap map = mapFragment.getGoogleMap();
 //			if(map!=null) map.stopAnimation();
 //		}
@@ -363,13 +351,11 @@ public class MainActivity extends FragmentActivity {
 
 	private void handleUserInputOfStudyDetails(
 			String studyName, 
-			int nSamples, 
-			int nOversamples, 
+			final int nSamples, 
+			final int nOversamples, 
 			String studyAreaFilename){
 		// Store the user input 
-		mCurrentStudyName = studyName;
-		mCurrentStudySamples = nSamples;
-		mCurrentStudyOversamples = nOversamples;
+		mStudyName = studyName;
 		
 		// Try to read the study area KML file 
 		ReadStudyAreaAsyncTask reader = new ReadStudyAreaAsyncTask(
@@ -383,8 +369,7 @@ public class MainActivity extends FragmentActivity {
 							clearCurrentStudyDetails();
 						}else if (studyArea.isValid()) {
 							// last piece of required info needed to create the sample
-							mCurrentStudyArea = studyArea;
-							generateSamples();
+							generateSamples(studyArea,nSamples,nOversamples);
 						} else {
 							displayToast(studyArea.getFailMessage());
 							clearCurrentStudyDetails();
@@ -396,60 +381,37 @@ public class MainActivity extends FragmentActivity {
 	}
 	
 	protected void clearCurrentStudyDetails() {
-		mCurrentStudyName = null;
-		mCurrentStudyArea = null;
-		mCurrentStudySamples = 0;
-		mCurrentStudyOversamples = 0;
+		mStudyName = null;
+		mCurrentTab = TabPagerAdapter.MAP_ITEM;
 	}
 
-	private void generateSamples(){
+	private void generateSamples(StudyArea studyArea, int nSamples, int nOversamples){
 		// Check that all four values were set
-		if(mCurrentStudyName==null || mCurrentStudyArea==null ||
-				!mCurrentStudyArea.isValid() ||
-				mCurrentStudySamples==0 || mCurrentStudyOversamples==0){
+		if(mStudyName==null || 
+				studyArea==null || !studyArea.isValid() ||
+				nSamples==0 || nOversamples==0){
 			displayToast("The four necessary values were not all "
 					+ "initialized (required: study name, study area, "
 					+ "# samples, # oversamples).  Please try again.");
-			Log.d("userInput","Study name: "+mCurrentStudyName);
-			Log.d("userInput","Study area: "+mCurrentStudyArea);
-			Log.d("userInput","Study samples: "+mCurrentStudySamples);
-			Log.d("userInput","Study oversample: "+mCurrentStudyOversamples);
+			Log.d("userInput","Study name: "+mStudyName);
+			Log.d("userInput","Study area: "+studyArea);
+			Log.d("userInput","Study samples: "+nSamples);
+			Log.d("userInput","Study oversample: "+nOversamples);
 			clearCurrentStudyDetails();
 		}else{
 			GenerateSample g = new GenerateSample(MainActivity.this,
-					mCurrentStudyArea,mCurrentStudySamples,
-					mCurrentStudyOversamples,mRefreshCallback);
+					studyArea, nSamples, nOversamples,new RefreshCallback(){
+				@Override
+				public void onTaskComplete(String message) {
+					refreshDisplays();
+					displayToast(message);
+				}
+			});
 			taskList.add(g);
 			g.execute();
 		}
 	}
 
-	
-	protected void getSampleStatus(final int id) {
-		UpdateSampleDialog dialog = new UpdateSampleDialog(
-				this,
-				new UpdateSampleCallback(){
-					@Override
-					public void onTaskComplete(
-							SampleDatabaseHelper.Status status,
-							String comment) {
-						updateSamplePoint(id, status, comment);
-					}
-				});
-		dialog.show();
-		Log.d("click","[MainActivity] selected: "+id);
-	}
-	
-	
-	public void updateSamplePoint(int itemID, SampleDatabaseHelper.Status status, String comment){
-		UpdateSampleAsyncTask updater = new UpdateSampleAsyncTask(
-				getBaseContext(), mCurrentStudyName, 
-				itemID, status, comment, mRefreshCallback);
-		taskList.add(updater);
-		updater.execute();
-	}
-	
-	
 	/** Present a list of studies (as found in the database) to the user
 	 * for them to make a selection.  When selected, the display is refreshed.
 	 */
@@ -483,9 +445,9 @@ public class MainActivity extends FragmentActivity {
 				public void onClick(DialogInterface dialog, int which) {
 					Object selected = spinner.getSelectedItem();
 					if (selected instanceof String) {
-						mCurrentStudyName = (String) spinner.getSelectedItem();
+						mStudyName = (String) spinner.getSelectedItem();
 						// refresh the display to reflect the change
-						refreshMainDisplays();
+						refreshDisplays();
 					} else {
 						Log.e("INPUT","Spinner input: Expected a string but received "
 										+ selected.getClass());
@@ -510,7 +472,7 @@ public class MainActivity extends FragmentActivity {
 	 * application's SQLite database to the SD card or to an external server.
 	 */
 	private void exportBAS(){
-		new ExportDialog(this, mCurrentStudyName, new ExportCallback(){
+		new ExportDialog(this, mStudyName, new ExportCallback(){
 			@Override
 			public void onTaskComplete(boolean exportAll, String exportFilename) {
 				writeData(exportAll,exportFilename);
@@ -518,7 +480,7 @@ public class MainActivity extends FragmentActivity {
 	}
 	
 	private void writeData(boolean b, String filename){
-		ExportDataAsyncTask exporter = new ExportDataAsyncTask(this,filename,b,mCurrentStudyName);
+		ExportDataAsyncTask exporter = new ExportDataAsyncTask(this,filename,b,mStudyName);
 		taskList.add(exporter);
 		exporter.execute();
 	}
@@ -534,139 +496,20 @@ public class MainActivity extends FragmentActivity {
 	 * The application state includes a string representation of the 
 	 * names of the current BAS in the display (null if no study has been 
 	 * created or selected).  Using this name, all other details of the 
-	 * study can be queried from the database.
+	 * study are queried from the database.
 	 * 
-	 * @see #mCurrentStudyName
+	 * @see #sCurrentStudyName
 	 */
-	private void refreshMainDisplays(){
-		if(mCurrentStudyName!=null && !mCurrentStudyName.isEmpty()){
+	private void refreshDisplays(){
+		if(mStudyName!=null && !mStudyName.isEmpty()){
 			SampleDatabaseHelper db = SampleDatabaseHelper.getInstance(getBaseContext());
-			
-			// Determine whether or not the study has been retrieved from the database
-			// if not, read in the study details (then try again)
-			if(mCurrentStudyArea==null){
-				ReadStudyAreaAsyncTask reader = new ReadStudyAreaAsyncTask(db.getSHPFilename(mCurrentStudyName),mCurrentStudyName, new ReadStudyAreaCallback(){
-					@Override
-					public void onTaskComplete(StudyArea studyArea) {
-						mCurrentStudyArea = studyArea;
-						if(mCurrentStudyArea==null){
-							displayToast("Error loading a study: "+mCurrentStudyName);
-						}else{
-							refreshMainDisplays();
-						}
-					}});
-				taskList.add(reader);
-				reader.execute();
-				return;
-			}
-			
-			// If the study has already been read in, display its contents in the map and table
-			Cursor cursor = db.getSamplePointsForStudy(mCurrentStudyName);
-		
-			// If the map is a GoogleMap, place markers at each sample location
-			// Otherwise, draw points on a simple canvas
+			Cursor cursor = db.getSamplePointsForStudy(mStudyName);
+
+			// refresh the map
 			MapFragmentDual mapFragment = 
 					(MapFragmentDual) ((TabPagerAdapter) mViewPager.getAdapter())
 					.getItem(TabPagerAdapter.MAP_ITEM);
-			
-			if(mapFragment.isGoogleMap()){
-				GoogleMap map = mapFragment.getGoogleMap();
-				if(map!=null && mCurrentStudyArea!=null){
-					map.clear();
-
-					// Respond to user clicks within the GoogleMap
-					//TODO only set this up once...
-					map.setOnMarkerClickListener(new OnMarkerClickListener(){
-						@Override
-						public boolean onMarkerClick(Marker m) {
-							// TODO check and only update if it is sample point (give toast otherwise)
-							// use the title and the id attributes?
-							int id = Integer.valueOf(m.getTitle());
-							getSampleStatus(id);
-							// consume the event (don't proceed to default action(s))
-							return true;
-						}});
-
-					// keep the same zoom level but recenter the display (could clip or be too small)
-					//map.moveCamera(CameraUpdateFactory.newLatLng(mCurrentStudyArea.getCenterLatLng()));
-					
-					double[] bb = mCurrentStudyArea.getBB();
-					
-					LatLngBounds s = new LatLngBounds(
-							  new LatLng(bb[1], bb[0]), new LatLng(bb[3], bb[2]));
-
-					map.moveCamera(CameraUpdateFactory.newLatLngBounds(s, 0));
-					
-					// draw the study area bounds on the map
-					Coordinate[] coords = mCurrentStudyArea.getBoundaryPoints();
-					ArrayList<ArrayList<LatLng>> holes = mCurrentStudyArea.getHoles();
-					
-					// Instantiates a new Polygon object and adds it to the map
-					PolygonOptions polygonOptions = new PolygonOptions();
-					for(int i=0;i<coords.length;i++){
-						polygonOptions.add(new LatLng(coords[i].y, coords[i].x));
-					}
-					for(ArrayList<LatLng> hole : holes) polygonOptions.addHole(hole);
-					// Draw with transparent fill
-					//polygonOptions.fillColor(android.R.color.transparent);
-					polygonOptions.fillColor(0x802222AA);//R.color.project_fill);
-					// Draw with red outline
-					polygonOptions.strokeColor(0xFF2222AA);//R.color.highlight);
-					polygonOptions.strokeWidth(1);
-					// Add the polygon to the map and store a handle (to reuse the color settings)
-					map.addPolygon(polygonOptions);
-					
-					// draw the sample points on the map
-					cursor.moveToFirst();
-					while(!cursor.isAfterLast()){
-						float x = cursor.getFloat(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_X));
-						float y = cursor.getFloat(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_Y));
-						// ID is used to determine which row of the database to update
-						int id = cursor.getInt(cursor.getColumnIndex(SampleInfo._ID));
-						// status is used to color code the marker (i.e., select the icon)
-						String typeLabel = cursor.getString(cursor.getColumnIndex(SampleInfo.COLUMN_NAME_STATUS));
-						MarkerOptions marker = new MarkerOptions().position(new LatLng(y, x))
-								.title(""+id)
-								.draggable(false);
-						switch(SampleDatabaseHelper.Status.getValueFromString(typeLabel)){
-						case SAMPLE: 
-							marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_sample)); 
-							break;
-						case OVERSAMPLE: 
-							marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_oversample)); 
-							break;
-						case REJECT: 
-							marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_reject)); 
-							break;
-						case COLLECTED: 
-							marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_collected)); 
-							break;
-						}
-						Marker m = map.addMarker(marker);
-						//m.set('isEditable',true);
-						Log.d("checkPoints","x: "+x+" y: "+y+", "+typeLabel);
-						cursor.moveToNext();
-					}
-				}else{
-					displayToast("Google map is null");
-				}
-			}else{
-				// refresh the map
-				MapViewDraw mapView = (MapViewDraw) this.getWindow().findViewById(R.id.mapView_drawMap);
-				
-				mapView.initView(cursor,mapView.getWidth(),mapView.getHeight(), mCurrentStudyArea);
-				
-				// for drawing on a canvas (not updated)
-//				public void draw(Canvas c, Paint outline, Paint background){
-//					c.drawRect(mAdjustedBB, background);
-//					
-//					c.drawPath(studyAreaPolygon,outline);
-//					
-//					studyAreaPolygon.transform(mTransform);
-//				}
-//				mapView.initView(cursor,mapView.getWidth(),mapView.getHeight(), db.getStudyBounds(mCurrentStudyName));
-				mapView.invalidate();
-			}
+			mapFragment.refresh(mStudyName, cursor);
 		
 			// refresh the table
 			ListView tableListView = (ListView) this.getWindow().findViewById(android.R.id.list);
@@ -675,16 +518,33 @@ public class MainActivity extends FragmentActivity {
 				//TODO difference between change cursor and swap cursor
 				adapter.swapCursor(cursor);
 			}
-			setTitle("Sample: "+mCurrentStudyName);
+			setTitle("Sample: "+mStudyName);
 		}
 	}
-
 
 	/** A helper method to present narrative feedback to the user. All 
 	 * message use the same length (LONG).
 	 * @param message Narrative feedback to display
 	 */
 	private void displayToast(String message) {
-		Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+		if(message!=null){
+			Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+		}
+	}
+	
+	/** static method for callback when the user has entered updates for a sample */
+	public void updateSamplePoint(
+			int itemID, 
+			SampleDatabaseHelper.Status status, 
+			String comment){
+		UpdateSampleAsyncTask updater = new UpdateSampleAsyncTask(
+				this, mStudyName, 
+				itemID, status, comment, new RefreshCallback(){
+					@Override
+					public void onTaskComplete(String toastMessage) {
+						refreshDisplays();
+					}});
+		taskList.add(updater);
+		updater.execute();
 	}
 }

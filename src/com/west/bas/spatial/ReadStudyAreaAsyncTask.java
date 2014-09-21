@@ -4,11 +4,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
+
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.vividsolutions.jts.geom.Coordinate;
 
 import android.os.AsyncTask;
 import android.util.Log;
@@ -27,6 +33,8 @@ public class ReadStudyAreaAsyncTask extends AsyncTask<Void, Void, StudyArea> {
 	private String mFilename;
 	private String mStudyName;
 	private ReadStudyAreaCallback mCallback;
+	
+	private static StudyArea sStudyArea;
 	
 	/**
 	 * The ReadStudyAreaTask needs the filename to read and from which
@@ -81,9 +89,41 @@ public class ReadStudyAreaAsyncTask extends AsyncTask<Void, Void, StudyArea> {
 	
 	@Override
 	public void onPostExecute(StudyArea studyArea){
+		sStudyArea = studyArea;
 		if(mCallback!=null) mCallback.onTaskComplete(studyArea);
 		Log.d("ReadStudy","completed read study async task");
 	}
 
+	public static boolean hasRecentStudy(){
+		return sStudyArea!=null;
+	}
+	public static LatLngBounds getBounds(){
+		if(sStudyArea==null) return null;
+		
+		double[] bb = sStudyArea.getBB();
+		return  new LatLngBounds(
+				  new LatLng(bb[1], bb[0]), 
+				  new LatLng(bb[3], bb[2]));
+
+	}
+	
+	public static PolygonOptions getPolygon(){
+		if(sStudyArea==null) return null;
+		
+		PolygonOptions p = new PolygonOptions();
+		
+		// add the perimeter points
+		Coordinate[] coords = sStudyArea.getBoundaryPoints();
+		for(int i=0;i<coords.length;i++){
+			p.add(new LatLng(coords[i].y, coords[i].x));
+		}
+		
+		// Add the holes
+		ArrayList<ArrayList<LatLng>> holes = sStudyArea.getHoles();
+		for(ArrayList<LatLng> hole : holes) p.addHole(hole);
+		
+		return p;
+	}
 }
+
 

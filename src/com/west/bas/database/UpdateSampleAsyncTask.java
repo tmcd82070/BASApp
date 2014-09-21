@@ -48,7 +48,7 @@ public class UpdateSampleAsyncTask  extends AsyncTask<Void, Void, Integer>{
 	
 	/** The name of the study to which the sample that is being 
 	 * updated belongs. */
-	private String mStudyName;
+	private String mStudyName;	
 	
 	//TODO reuse the UpdateTask by initializing with the study and then
 	// providing parameters to each call to execute.

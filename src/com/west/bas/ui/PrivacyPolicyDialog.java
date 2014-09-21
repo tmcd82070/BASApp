@@ -21,7 +21,7 @@ import android.widget.TextView;
  */
 public class PrivacyPolicyDialog extends AlertDialog{
 	final static private String sPrivacyPolicy = 
-			"This application displays the study are polygon and "
+			"This application displays the study area polygon and "
 			+ "the generated sample locations on a Google Maps "
 			+ "display.  It does not send any identifying "
 			+ "information to Google. The polygon and markers are "
