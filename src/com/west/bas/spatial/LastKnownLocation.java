@@ -1,6 +1,7 @@
 package com.west.bas.spatial;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.west.bas.ui.RefreshCallback;
 import com.west.bas.ui.map.MapFragmentDual;
 
 import android.content.Context;
@@ -9,7 +10,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
 
 public class LastKnownLocation {
 
@@ -20,7 +20,7 @@ public class LastKnownLocation {
 	
 	
 	
-	public static void giveUserConsent(final Context c){
+	public static void giveUserConsent(final Context c, final RefreshCallback callback){
 		sHasUserConsent = true;
 		//TODO start the location service
 		
@@ -36,7 +36,7 @@ public class LastKnownLocation {
 		    public void onLocationChanged(Location location) {
 		      // Called when a new location is found by the network location provider.
 		      sLocation = location;
-		      Toast.makeText(c, "changed lcoation: "+location.getLatitude()+", "+location.getLongitude(), Toast.LENGTH_LONG).show();
+		      callback.onTaskComplete("changed location: "+location.getLatitude()+", "+location.getLongitude());
 		    }
 
 		    public void onProviderEnabled(String provider) {}

@@ -223,7 +223,13 @@ public class MainActivity extends FragmentActivity {
 		// feedback to confirm their selection.
 		String message = "Privacy policy accepted.\nGPS location will ";
 		if(hasProvidedConsentToLocation){
-			LastKnownLocation.giveUserConsent(this.getApplicationContext());
+			LastKnownLocation.giveUserConsent(this.getApplicationContext(),new RefreshCallback(){
+
+				@Override
+				public void onTaskComplete(String toastMessage) {
+					refreshDisplays();
+					displayToast(toastMessage);
+				}});
 		}else{
 			message += "NOT ";
 		}
@@ -446,8 +452,7 @@ public class MainActivity extends FragmentActivity {
 					Object selected = spinner.getSelectedItem();
 					if (selected instanceof String) {
 						mStudyName = (String) spinner.getSelectedItem();
-						// refresh the display to reflect the change
-						refreshDisplays();
+						loadStudyArea();
 					} else {
 						Log.e("INPUT","Spinner input: Expected a string but received "
 										+ selected.getClass());
@@ -463,6 +468,25 @@ public class MainActivity extends FragmentActivity {
 		// Turn off the load button if there are no exiting studies
 		if (!isEnabled) {
 			dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+		}
+	}
+
+	protected void loadStudyArea() {
+		String studyAreaFilename = SampleDatabaseHelper.getInstance(this).getSHPFilename(mStudyName);
+		if(studyAreaFilename != null){
+			// Try to read the study area KML file 
+			ReadStudyAreaAsyncTask reader = new ReadStudyAreaAsyncTask(
+					studyAreaFilename, 
+					mStudyName,
+					new ReadStudyAreaCallback() {
+						@Override
+						public void onTaskComplete(StudyArea studyArea) {
+							if(studyArea==null)	clearCurrentStudyDetails();
+							else refreshDisplays();
+						}
+					});
+			taskList.add(reader);
+			reader.execute();
 		}
 	}
 
@@ -500,7 +524,7 @@ public class MainActivity extends FragmentActivity {
 	 * 
 	 * @see #sCurrentStudyName
 	 */
-	private void refreshDisplays(){
+	public void refreshDisplays(){
 		if(mStudyName!=null && !mStudyName.isEmpty()){
 			SampleDatabaseHelper db = SampleDatabaseHelper.getInstance(getBaseContext());
 			Cursor cursor = db.getSamplePointsForStudy(mStudyName);

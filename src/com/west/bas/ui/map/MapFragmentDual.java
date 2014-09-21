@@ -33,7 +33,7 @@ public class MapFragmentDual extends SupportMapFragment {
 	public static final float NEARBY_THRESHOLD = 100.0f;
 	
 	/** Reference to the map object */
-	private GoogleMap mMap;
+	private static GoogleMap sMap;
 	
 	/** Flag indicating whether or not the user gave consent to 
 	 * show their location on the map.  If so, the user location
@@ -71,7 +71,7 @@ public class MapFragmentDual extends SupportMapFragment {
 		}
 		
 		if(mPolygonOptions!=null){
-			mMap.addPolygon(mPolygonOptions);
+			sMap.addPolygon(mPolygonOptions);
 		}
 	}
 	
@@ -91,13 +91,13 @@ public class MapFragmentDual extends SupportMapFragment {
 		
 		int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this.getActivity().getBaseContext());
 		if(status==ConnectionResult.SUCCESS){
-			mMap=getMap();
+			sMap=getMap();
 
-			mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(wy.getCenter(), 5));
+			sMap.moveCamera(CameraUpdateFactory.newLatLngZoom(wy.getCenter(), 5));
 			//mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(wy, 0));
 			
 			// Respond to user clicks within the GoogleMap
-			mMap.setOnMarkerClickListener(new OnMarkerClickListener(){
+			sMap.setOnMarkerClickListener(new OnMarkerClickListener(){
 				@Override
 				public boolean onMarkerClick(Marker m) {
 					// TODO check and only update if it is sample point (give toast otherwise)
@@ -129,8 +129,8 @@ public class MapFragmentDual extends SupportMapFragment {
 
 	
 	public void setUserLocation(boolean hasUserLocationConsent){
-		mMap.setMyLocationEnabled(hasUserLocationConsent);
-		mMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
+		sMap.setMyLocationEnabled(hasUserLocationConsent);
+		sMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
 	        @Override
 	        public void onMyLocationChange(Location location) {
 	            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -149,14 +149,14 @@ public class MapFragmentDual extends SupportMapFragment {
 		    int shadeColor = 0x440000cc; //opaque red fill
 
 		    CircleOptions circleOptions = new CircleOptions().center(loc).radius(radiusInMeters).fillColor(shadeColor).strokeColor(strokeColor).strokeWidth(8);
-		    mUserCircle = mMap.addCircle(circleOptions);
+		    mUserCircle = sMap.addCircle(circleOptions);
 			
 		    // user location
 			MarkerOptions m = new MarkerOptions().position(loc)
 					.title("")
 					.draggable(false);
 			m.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_location)); 
-			mUserMarker = mMap.addMarker(m);
+			mUserMarker = sMap.addMarker(m);
         }else{
             mUserCircle.setCenter(loc);
             mUserMarker.setPosition(loc);
@@ -164,14 +164,13 @@ public class MapFragmentDual extends SupportMapFragment {
 	}
 
 	public void refresh(String studyName, Cursor cursor) {
-		if(mMap==null) mMap=getMap();
-		if(mMap==null) return;
+		if(sMap==null) return;
 		
-		mMap.clear();
+		sMap.clear();
 		
 		if(ReadStudyAreaAsyncTask.hasRecentStudy()){
 			// recenter and zoom the map
-			mMap.moveCamera(
+			sMap.moveCamera(
 					CameraUpdateFactory.newLatLngBounds(
 							ReadStudyAreaAsyncTask.getBounds(), 0));
 			
@@ -204,7 +203,7 @@ public class MapFragmentDual extends SupportMapFragment {
 					marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_collected)); 
 					break;
 				}
-				mMap.addMarker(marker);
+				sMap.addMarker(marker);
 				//m.set('isEditable',true);
 				Log.d("checkPoints","x: "+x+" y: "+y+", "+typeLabel);
 				cursor.moveToNext();
