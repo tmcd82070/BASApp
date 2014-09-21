@@ -113,8 +113,18 @@ public class StudyArea {
 	 */
 	public float[] getSampleLocation(float[] pointUnitSq) {
 		Envelope boundingBox = studyAreaPolygon_sp.getEnvelopeInternal();
-		float x = (float) (boundingBox.getMinX() + (boundingBox.getMaxX()-boundingBox.getMinX()) * pointUnitSq[0]); 
-		float y = (float) (boundingBox.getMinY() + (boundingBox.getMaxY()-boundingBox.getMinY()) * pointUnitSq[1]);
+		double sqSide = boundingBox.getWidth();
+		double boxX = boundingBox.getMinX();
+		double boxY = boundingBox.getMinY();
+		// center the study are within a *square* bounding box
+		if(boundingBox.getHeight() > boundingBox.getWidth()){
+			sqSide = boundingBox.getHeight();
+			boxX -= (sqSide-boundingBox.getWidth())/2;
+		}else{
+			boxY += (sqSide-boundingBox.getHeight())/2;
+		}
+		float x = (float) (boxX + sqSide * pointUnitSq[0]); 
+		float y = (float) (boxY + sqSide * pointUnitSq[1]);
 		Point p = f.createPoint(new Coordinate(x,y));
 		
 		//TODO return a point rather than float array?
