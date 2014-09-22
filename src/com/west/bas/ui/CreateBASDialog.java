@@ -2,7 +2,7 @@ package com.west.bas.ui;
 
 import java.util.ArrayList;
 import java.util.Vector;
-
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -18,7 +18,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
-
 import com.west.bas.R;
 import com.west.bas.database.SampleDatabaseHelper;
 import com.west.bas.sample.GenerateSample;
@@ -78,6 +77,9 @@ public class CreateBASDialog extends AlertDialog{
 	 * @param context application context to locate database
 	 * @param callback 
 	 */
+	@SuppressLint("InflateParams")
+	// http://www.doubleencore.com/2013/05/layout-inflation-as-intended/
+	// exception: placing view in dialog 
 	private View.OnClickListener initLayoutWidgets(
 			final Context context, 
 			final CreateBASCallback callback) {
@@ -260,19 +262,6 @@ public class CreateBASDialog extends AlertDialog{
 					numberSamplesLabel.setTextColor(ColorHelper.black());
 				}
 				
-				if(nOversamples<0){
-					if(!displayedToast){
-						Toast.makeText(context, 
-								"Some number of oversamples is required (may be zero)", 
-								Toast.LENGTH_SHORT).show();
-						displayedToast = true;
-					}
-					numberOversamplesLabel.setTextColor(ColorHelper.highlight());
-					isValid = false;
-				}else{
-					numberOversamplesLabel.setTextColor(ColorHelper.black());
-				}
-				
 				if(studyAreaFilename == null || studyAreaFilename.isEmpty() ||
 						studyAreaFilename.equals(context.getResources().
 								getString(R.string.label_studyAreaFilename))){
@@ -287,11 +276,24 @@ public class CreateBASDialog extends AlertDialog{
 					filenameLabel.setTextColor(ColorHelper.black());
 				}
 				
+				// check oversamples last because it could be left blank
+				if(nOversamples<0){
+					if(!displayedToast){
+						Toast.makeText(context, 
+								"Using standard number of oversamples", 
+								Toast.LENGTH_SHORT).show();
+						// don't consider this the toast (still show help if there are  other issues)
+					}
+					numberOversamplesLabel.setTextColor(ColorHelper.highlight());
+				}else{
+					numberOversamplesLabel.setTextColor(ColorHelper.black());
+				}
 				if(isValid){
+					int nOversampleWithStd = nOversamples<0 ? nSamples*2 : nOversamples;
 					callback.onTaskComplete(
 							studyName, 			// database safe string identifier
 							nSamples, 			// number of samples
-							nOversamples, 		// number of over samples
+							nOversampleWithStd, 		// number of over samples
 							studyAreaFilename); // absolute path to file containing study area
 					dismiss();
 				}

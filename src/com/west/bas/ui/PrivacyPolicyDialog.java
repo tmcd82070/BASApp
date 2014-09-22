@@ -2,10 +2,10 @@ package com.west.bas.ui;
 
 import com.west.bas.R;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnShowListener;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -60,6 +60,9 @@ public class PrivacyPolicyDialog extends AlertDialog{
 		});	
 	}
 	
+	@SuppressLint("InflateParams")
+	// http://www.doubleencore.com/2013/05/layout-inflation-as-intended/
+	// exception: placing view in dialog 
 	private View.OnClickListener initLayoutWidgets(
 			final Context context, 
 			final PrivacyPolicyCallback callback) {

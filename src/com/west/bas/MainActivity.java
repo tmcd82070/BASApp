@@ -227,7 +227,7 @@ public class MainActivity extends FragmentActivity {
 
 				@Override
 				public void onTaskComplete(String toastMessage) {
-					refreshDisplays();
+					refreshDisplays(true);
 					displayToast(toastMessage);
 				}});
 		}else{
@@ -236,8 +236,13 @@ public class MainActivity extends FragmentActivity {
 		message += "be shown.";
 		displayToast(message);
 		
+		MapFragmentDual mapFragment = 
+				(MapFragmentDual) ((TabPagerAdapter) mViewPager.getAdapter())
+				.getItem(TabPagerAdapter.MAP_ITEM);
+		mapFragment.setUserLocation(hasProvidedConsentToLocation);
+		
 		// Update the displays if there was saved state (which study and which view)
-		refreshDisplays();
+		refreshDisplays(true);
 		mActionBar.setSelectedNavigationItem(mCurrentTab); 
 		mViewPager.setCurrentItem(mCurrentTab); 
 	}
@@ -409,7 +414,7 @@ public class MainActivity extends FragmentActivity {
 					studyArea, nSamples, nOversamples,new RefreshCallback(){
 				@Override
 				public void onTaskComplete(String message) {
-					refreshDisplays();
+					refreshDisplays(true);
 					displayToast(message);
 				}
 			});
@@ -482,7 +487,7 @@ public class MainActivity extends FragmentActivity {
 						@Override
 						public void onTaskComplete(StudyArea studyArea) {
 							if(studyArea==null)	clearCurrentStudyDetails();
-							else refreshDisplays();
+							else refreshDisplays(true);
 						}
 					});
 			taskList.add(reader);
@@ -524,7 +529,7 @@ public class MainActivity extends FragmentActivity {
 	 * 
 	 * @see #sCurrentStudyName
 	 */
-	public void refreshDisplays(){
+	public void refreshDisplays(boolean resetMapDisplay){
 		if(mStudyName!=null && !mStudyName.isEmpty()){
 			SampleDatabaseHelper db = SampleDatabaseHelper.getInstance(getBaseContext());
 			Cursor cursor = db.getSamplePointsForStudy(mStudyName);
@@ -533,6 +538,7 @@ public class MainActivity extends FragmentActivity {
 			MapFragmentDual mapFragment = 
 					(MapFragmentDual) ((TabPagerAdapter) mViewPager.getAdapter())
 					.getItem(TabPagerAdapter.MAP_ITEM);
+			if(resetMapDisplay) mapFragment.loadNewStudy();
 			mapFragment.refresh(mStudyName, cursor);
 		
 			// refresh the table
@@ -566,7 +572,7 @@ public class MainActivity extends FragmentActivity {
 				itemID, status, comment, new RefreshCallback(){
 					@Override
 					public void onTaskComplete(String toastMessage) {
-						refreshDisplays();
+						refreshDisplays(false);
 					}});
 		taskList.add(updater);
 		updater.execute();

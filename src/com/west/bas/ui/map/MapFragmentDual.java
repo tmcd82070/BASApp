@@ -1,7 +1,6 @@
 package com.west.bas.ui.map;
 
 import android.database.Cursor;
-import android.location.Location;
 import android.os.Bundle; 
 import android.util.Log;
 import com.google.android.gms.common.ConnectionResult;
@@ -30,17 +29,24 @@ import com.west.bas.ui.UpdateSampleDialog;
 
 public class MapFragmentDual extends SupportMapFragment { 
 	
-	public static final float NEARBY_THRESHOLD = 100.0f;
+	// distance in meters (10km)
+	public static final float NEARBY_THRESHOLD = 10000.0f;
 	
 	/** Reference to the map object */
 	private static GoogleMap sMap;
+	
+	/** Reposition the map on load; flag to remember whether or not it is on load */
+	private static boolean sIsFirstZoom = true;
+	public void loadNewStudy(){
+		sIsFirstZoom = true;
+	}
 	
 	/** Flag indicating whether or not the user gave consent to 
 	 * show their location on the map.  If so, the user location
 	 * should be drawn during map refresh and is used to highlight
 	 * locations that are nearby.
 	 */
-	private boolean mShowUserLocation = false;
+	private static boolean sShowUserLocation = false;
 	
 	/** Class level reference to the async task (for cleanup) */
 	private UpdateSampleAsyncTask updater;
@@ -64,7 +70,7 @@ public class MapFragmentDual extends SupportMapFragment {
 			
 			// Draw with transparent fill
 			//polygonOptions.fillColor(android.R.color.transparent);
-			mPolygonOptions.fillColor(0x802222AA);//R.color.project_fill);
+			mPolygonOptions.fillColor(0x402222AA);//R.color.project_fill);
 			// Draw with red outline
 			mPolygonOptions.strokeColor(0xFF2222AA);//R.color.highlight);
 			mPolygonOptions.strokeWidth(1);
@@ -81,6 +87,7 @@ public class MapFragmentDual extends SupportMapFragment {
 			updater.cancel(true);
 			updater = null;
 		}
+		super.onDestroy();
 	}
 	
 	/** Initialize the map in onActivityCreate so that
@@ -102,7 +109,8 @@ public class MapFragmentDual extends SupportMapFragment {
 				public boolean onMarkerClick(Marker m) {
 					// TODO check and only update if it is sample point (give toast otherwise)
 					// use the title and the id attributes?
-					int id = Integer.valueOf(m.getTitle());
+					String title = m.getTitle();
+					int id = Integer.valueOf(title);
 					getSampleStatus(id);
 					// consume the event (don't proceed to default action(s))
 					return true;
@@ -113,7 +121,7 @@ public class MapFragmentDual extends SupportMapFragment {
 	
 	protected void getSampleStatus(final int id) {
 		UpdateSampleDialog dialog = new UpdateSampleDialog(
-				this.getActivity().getBaseContext(),
+				(MainActivity) getActivity(),
 				new UpdateSampleCallback(){
 					@Override
 					public void onTaskComplete(
@@ -129,24 +137,18 @@ public class MapFragmentDual extends SupportMapFragment {
 
 	
 	public void setUserLocation(boolean hasUserLocationConsent){
-		sMap.setMyLocationEnabled(hasUserLocationConsent);
-		sMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
-	        @Override
-	        public void onMyLocationChange(Location location) {
-	            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-	            updateUserMarker(latLng);
-	        }
-	    });
+		sShowUserLocation = hasUserLocationConsent;
 	}
 	
 	protected void updateUserMarker(LatLng loc) {
+//		if(loc==null) return;
         if(mUserCircle == null || mUserMarker == null){
 			if(loc==null) loc = wy.getCenter();
 
 			// define "near by"
 		    double radiusInMeters = NEARBY_THRESHOLD;
-		    int strokeColor = 0xff0000cc; //red outline
-		    int shadeColor = 0x440000cc; //opaque red fill
+		    int strokeColor = 0xffffb600; //red outline
+		    int shadeColor = 0x44ffb600; //opaque red fill
 
 		    CircleOptions circleOptions = new CircleOptions().center(loc).radius(radiusInMeters).fillColor(shadeColor).strokeColor(strokeColor).strokeWidth(8);
 		    mUserCircle = sMap.addCircle(circleOptions);
@@ -169,10 +171,15 @@ public class MapFragmentDual extends SupportMapFragment {
 		sMap.clear();
 		
 		if(ReadStudyAreaAsyncTask.hasRecentStudy()){
-			// recenter and zoom the map
-			sMap.moveCamera(
-					CameraUpdateFactory.newLatLngBounds(
-							ReadStudyAreaAsyncTask.getBounds(), 0));
+			// if the user hasn't zoomed in to level...
+			//float zoom = sMap.getCameraPosition().zoom;
+			if(sIsFirstZoom){
+				// recenter and zoom the map
+				sMap.moveCamera(
+						CameraUpdateFactory.newLatLngBounds(
+								ReadStudyAreaAsyncTask.getBounds(), 0));
+				sIsFirstZoom = false;
+			}
 			
 			// draw the study area
 			drawStudyArea();
@@ -214,7 +221,7 @@ public class MapFragmentDual extends SupportMapFragment {
 			}
 				
 			// plot the user's location on the map
-			if(mShowUserLocation){
+			if(sShowUserLocation){
 				updateUserMarker(LastKnownLocation.getLatLong());
 			}
 		}
