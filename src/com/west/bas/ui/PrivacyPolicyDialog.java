@@ -20,22 +20,23 @@ import android.widget.TextView;
  *
  */
 public class PrivacyPolicyDialog extends AlertDialog{
+	// https://developers.google.com/maps/terms#section_9_3
 	final static private String sPrivacyPolicy = 
 			"This application displays the study area polygon and "
 			+ "the generated sample locations on a Google Maps "
-			+ "display.  It does not send any identifying "
-			+ "information to Google. The polygon and markers are "
-			+ "placed on the map as a group, but are posted "
-			+ "anonymously.  By using the Balanced Acceptance "
-			+ "Sampling (BAS) application, you consent to the use "
-			+ "of Google Maps to display the locations and accept "
-			+ "Google's Privacy Policy and Terms of Service as they "
-			+ "apply to the BAS application.\n\n"
-			+ "As an added feature, the BAS application can also "
-			+ "display your current location on the map and "
-			+ "highlight any sample locations that are nearby.  To "
-			+ "do so, the BAS application will access the location "
-			+ "of your Android device using the GPS service.";
+			+ "display.  By using the Balanced Acceptance "
+			+ "Sampling (BAS) application, you "
+			+ "agree to be bound by Google's Terms of Use "
+			+ "(https://developers.google.com/maps/terms). \n\n"
+			+ "No personally identifying information is collected; "
+			+ "study area (KML) and sample points are sent to "
+			+ "Google for display on the map and are covered by "
+			+ "Google's Privacy Policy "
+			+ "(http://www.google.com/privacy.htm).\n\n"
+			+ "The BAS application can optionally display your "
+			+ "current location on the map and highlight any sample "
+			+ "locations within 10 kilometers of your location "
+			+ "using the GPS on your device.";
 	
 	public PrivacyPolicyDialog(Context context, final PrivacyPolicyCallback callback){
 		super(context);
