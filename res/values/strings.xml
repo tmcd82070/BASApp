@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="action_settings">Settings</string>
+    
+    <!-- Activity titles -->
+    <string name="title_app">Balanced Acceptance Sampling</string>
+    
+    <string name="action_create">Create</string>
+    <string name="action_load">Load</string>
+    <string name="action_export">Export</string>
+    
+    <!-- UI display -->
+    <string name="display_number">[Sample Number]</string>
+    <string name="display_status">[Status]</string>
+    <string name="display_comments">[Comments]</string>
+    <string name="display_folder">[Folder name]</string>
+    <string name="display_file">[File name]</string>
+    
+    <!-- UI labels -->
+	<string name="label_map">Map</string>
+	<string name="label_table">Table</string>
+	
+	<string name="label_sampleName">Sample Name</string>
+    <string name="label_sampleSize">Sample Size</string>
+	<string name="label_studyArea">Study Area</string>
+	<string name="label_oversampleSize">Oversample Size</string>
+	<string name="label_create">Generate BAS</string>
+	<string name="label_studyAreaFilename">No study area identified</string>
+	<string name="label_studyAreaBrowser">Select file for study area:</string>
+	<string name="label_rejected">Rejected</string>
+	<string name="label_reject">Reject</string>
+	<string name="label_collected">Collected</string>
+	<string name="label_collect">Collect</string>
+	<string name="label_currentStudy">Current\nstudy</string>
+	<string name="label_allStudies">All\nstudies</string>
+	<string name="label_exportFilename">Filename:</string>
+	<string name="label_comment">Comments</string>
+	
+	<string name="label_SD">SD Card</string>
+	<string name="label_appFolder">BAS\nFolder</string>
+	
+	<string name="label_privacyFiller">::Privacy Policy::</string>
+	
+    <!-- Button labels -->
+    <string name="label_new">Create new sample</string>
+    <string name="label_fileBrowser">Browse</string>
+    
+    <string name="label_consentGPS">Provide access to my current location</string>
+    <string name="label_quitBAS">Quit the BAS application</string>
+    <string name="label_continueNoGPS">Accept the privacy policy only</string>
+    <string name="label_continueYesGPS">Accept the privacy policy and consent to use of location data</string>
+    
+    <!-- Text field hints -->
+    <string name="hint_sampleName">Study name (A-Z,a-z,_)</string>
+    <string name="hint_noSampleName">No existing BAS</string>
+	<string name="hint_sampleSize">Number of samples (n)</string>
+    <string name="hint_oversampleSize">Samples in reserve</string>
+	<string name="hint_noStudy">Use the menu to generate a BAS or\nload an existing sample.</string>
+	<string name="hint_filename">Filename (.csv)</string>
+    
+    <!-- Accessibility description -->
+    <string name="describe_studyArea">Graphical display of study area boundary</string>
+    <string name="describe_folder">Folder</string>
+    
+    <!-- Colors to use in the display -->
+    <color name="highlight">#AA2222</color>
+    <color name="near_me">#FFFF33</color>
+    <color name="warning">#CCCC00</color>
+    <color name="disabled">#404040</color>
+    
+    <color name="project_fill">#80AA1111</color>
+    
+    <color name="collected">#ff33ff33</color>
+    <color name="rejected">#ffff3333</color>
+    <color name="oversample">#ff404040</color>
+    <color name="sample">#ff006600</color>
+    
+    <color name="list_background">#E8E8E8</color>
+    
+</resources>

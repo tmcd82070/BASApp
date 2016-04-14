@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="state_sample" format="boolean"/>
+    <attr name="state_collected" format="boolean"/>
+    <attr name="state_rejected" format="boolean"/>
+    
+    <declare-styleable name="ColoredTextView">
+        <attr name="state_sample"/>
+        <attr name="state_collected"/>
+        <attr name="state_rejected"/>
+    </declare-styleable>
+    
+</resources>

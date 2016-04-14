@@ -1,0 +1,60 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".CreateActivity" >
+
+    <LinearLayout
+        android:id="@+id/linearLayout_buttons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="42dp" >
+
+        <ToggleButton
+            android:id="@+id/toggleButton_currentStudy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="20dp"
+            android:background="@drawable/togglebutton_custom"
+            android:textOn="@string/label_currentStudy" 
+        	android:textOff="@string/label_currentStudy"/>
+
+        <ToggleButton
+            android:id="@+id/toggleButton_allStudies"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+        	android:background="@drawable/togglebutton_custom"
+            android:textOn="@string/label_allStudies"
+            android:textOff="@string/label_allStudies" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView_exportLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@id/linearLayout_buttons"
+        android:layout_marginTop="70dp"
+        android:text="@string/label_exportFilename"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <EditText
+        android:id="@+id/editText_exportFilename"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@id/linearLayout_buttons"
+        android:layout_alignRight="@id/linearLayout_buttons"
+        android:layout_below="@id/textView_exportLabel"
+        android:ems="10"
+        android:hint="@string/hint_filename"
+        android:inputType="textMultiLine" >
+
+        <requestFocus />
+    </EditText>
+
+</RelativeLayout>

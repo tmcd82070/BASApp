@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:bas="http://schemas.android.com/apk/res-auto">
+    
+    <!-- Oversample (grey) -->
+    <item 
+        android:color="@color/oversample"
+        bas:state_sample="false"
+    />
+    
+    <!-- All others should have state_stample==T -->
+    <!-- Sample has been rejected (light red) -->
+    <item 
+        android:color="@color/rejected"
+        bas:state_rejected="true"
+        bas:state_sample="true"
+    />
+
+    <!-- All others should have state_sample==T and state_rejected==F -->
+    <!-- Sample needs to be collected (light green) -->
+    <item 
+        android:color="@color/collected"
+        bas:state_collected="false"
+        bas:state_sample="true"
+        bas:state_rejected="false"
+    />
+    
+    <!-- Lase one has sample = T, rejected = F, collected = T -->
+    <!-- Sample has been collected (dark green) -->
+    <item 
+        android:color="@color/sample"
+        bas:state_collected="true"
+        bas:state_sample="true"
+        bas:state_rejected="false"
+    />
+    
+</selector>
